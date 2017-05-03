@@ -1,11 +1,19 @@
+#########################################################
+# CMAKE_C_COMPILER and CMAKE_CXX_COMPILER must be defined
+# before the project statement; However, the project
+# statement will clear CMAKE_BUILD_TYPE. CACHE variables,
+# along with the order of this code, are used to work
+# around these constraints.
+#
+# Don't put any code above or in this block, unless it
+# has similar constraints.
 cmake_minimum_required(VERSION 3.1.0)
-
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/extras/ripple-libpp/extras/rippled/Builds/CMake")
 include(CMakeFuncs)
-
 set(openssl_min 1.0.1)
-
 parse_target()
+project(ripple-offline-tool)
+#########################################################
 
 if (nonunity)
   set(target "" CACHE STRING "Build target. Nounity not supported" FORCE)
@@ -14,7 +22,9 @@ endif()
 
 setup_build_cache()
 
-project(ripple-offline-tool)
+############################################################
+
+add_subdirectory(extras/ripple-libpp/src/unity)
 
 ############################################################
 
@@ -47,16 +57,6 @@ use_pthread()
 use_openssl(${openssl_min})
 
 setup_build_boilerplate()
-
-############################################################
-
-add_with_props(lib_src extras/ripple-libpp/src/unity/ripple-libpp.cpp
-  -I"${CMAKE_SOURCE_DIR}/"extras/ripple-libpp/extras/rippled/src/secp256k1
-  ${no_unused_w}
-  )
-
-add_with_props(lib_src extras/ripple-libpp/extras/rippled/src/ripple/unity/ed25519_donna.c
-  -I"${CMAKE_SOURCE_DIR}/"extras/ripple-libpp/extras/rippled/src/ed25519-donna)
 
 ############################################################
 
@@ -118,12 +118,9 @@ endif()
 
 if (WIN32 OR is_xcode)
   group_sources(src)
-  group_sources(extras/ripple-libpp/extras/rippled/src)
 endif()
 
-add_library(ripplelibpp OBJECT ${lib_src} ${rippled_src})
-
-add_executable(ripple-offline-tool ${app_src} $<TARGET_OBJECTS:ripplelibpp> ${rippled_src})
+add_executable(ripple-offline-tool ${app_src} $<TARGET_OBJECTS:ripplelibpp>)
 
 set_startup_project(ripple-offline-tool)
 
