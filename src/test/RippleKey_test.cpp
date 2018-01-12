@@ -221,37 +221,37 @@ private:
         if (!BEAST_EXPECT(obj))
             return;
 
-        ripple::STTx tx{ std::move(*obj) };
+        boost::optional<ripple::STTx> tx {std::move(*obj)};
         // The hard-coded version is signed
-        auto check = tx.checkSign(true);
+        auto check = tx->checkSign(true);
         BEAST_EXPECT(check.first);
         {
             auto const key = RippleKey::make_RippleKey(kt,
                 std::string("alice"));
             auto const expectedSignature = kt == KeyType::secp256k1 ?
-                tx.getFieldVL(sfTxnSignature) :
+                tx->getFieldVL(sfTxnSignature) :
                 strUnHex("0751E8D38C26E8B6C953766A8A58570CA0CB93E57B86047F1FEF8DA3D7"
                     "9DFB97E78F4E59365C88EEE0E94EF7C1A2155A828B239AC00F3E95802D"
                     "851ABB113F06").first;
             auto const expectedSigningKey = kt == KeyType::secp256k1 ?
-                tx.getFieldVL(sfSigningPubKey) :
+                tx->getFieldVL(sfSigningPubKey) :
                 strUnHex("ED4A9D72F2557B714713DC8BA7C6F9576BCC06117A52F6C32"
                     "F1E26FEEF9819EC8E").first;
 
             // Remove the signature
-            tx.makeFieldAbsent(sfTxnSignature);
-            tx.setAccountID(sfAccount, calcAccountID(key.publicKey()));
-            check = tx.checkSign(true);
+            tx->makeFieldAbsent(sfTxnSignature);
+            tx->setAccountID(sfAccount, calcAccountID(key.publicKey()));
+            check = tx->checkSign(true);
             BEAST_EXPECT(!check.first);
             BEAST_EXPECT(check.second == "Invalid signature.");
 
             // Now re-sign it
             key.singleSign(tx);
-            BEAST_EXPECT(tx.checkSign(true).first);
+            BEAST_EXPECT(tx->checkSign(true).first);
             // Same signature
-            BEAST_EXPECT(tx.getFieldVL(sfSigningPubKey) == expectedSigningKey);
-            BEAST_EXPECT(tx.getFieldVL(sfTxnSignature) == expectedSignature);
-            BEAST_EXPECT(!tx.isFieldPresent(sfSigners));
+            BEAST_EXPECT(tx->getFieldVL(sfSigningPubKey) == expectedSigningKey);
+            BEAST_EXPECT(tx->getFieldVL(sfTxnSignature) == expectedSignature);
+            BEAST_EXPECT(!tx->isFieldPresent(sfSigners));
         }
 
         {
@@ -261,13 +261,13 @@ private:
 
             // Now multisign it with the test key
             key.multiSign(tx);
-            BEAST_EXPECT(tx.checkSign(true).first);
+            BEAST_EXPECT(tx->checkSign(true).first);
             // No single signature
-            BEAST_EXPECT(!tx.isFieldPresent(sfTxnSignature));
-            BEAST_EXPECT(tx.getFieldVL(sfSigningPubKey).empty());
-            if (BEAST_EXPECT(tx.isFieldPresent(sfSigners)))
+            BEAST_EXPECT(!tx->isFieldPresent(sfTxnSignature));
+            BEAST_EXPECT(tx->getFieldVL(sfSigningPubKey).empty());
+            if (BEAST_EXPECT(tx->isFieldPresent(sfSigners)))
             {
-                auto const& signers = tx.getFieldArray(sfSigners);
+                auto const& signers = tx->getFieldArray(sfSigners);
                 BEAST_EXPECT(signers.size() == 1);
                 auto const& signer = signers[0];
                 auto const expectedAccount = kt == KeyType::secp256k1 ?
@@ -285,25 +285,33 @@ private:
                     "D12E9335B9AADAB917E65F5E3DB4B8A37DB0F5F5DC2E7333FF"
                     "26A8E5FEEC203D1F65ACADE6E6D0BD8E01D21C1838DF005E66"
                     "9AC1C8E57CA41405374CEDBB2309";
+                auto const expectedHash = kt == KeyType::secp256k1 ?
+                    "D955B668EF36A0E100D283CD8186F6B686EC140F10F3E5680E3"
+                    "E53C1166DDBAB" :
+                    "3CBBC2E5BA25609BC71B6380C1853CA73F39BC1E094232B3CBB"
+                    "B7B2FBBC0347E";
+
                 BEAST_EXPECT(to_string(signer.getAccountID(sfAccount)) ==
                     expectedAccount);
                 BEAST_EXPECT(strHex(signer.getFieldVL(sfSigningPubKey)) ==
                     expectedPubKey);
                 BEAST_EXPECT(strHex(signer.getFieldVL(sfTxnSignature)) ==
                     expectedSignature);
+                BEAST_EXPECT(to_string (tx->getTransactionID()) ==
+                    expectedHash);
             }
 
             // Sign with a second key
             auto const key2 = RippleKey::make_RippleKey(kt,
                 passphrase);
             key2.multiSign(tx);
-            BEAST_EXPECT(tx.checkSign(true).first);
+            BEAST_EXPECT(tx->checkSign(true).first);
             // No single signature
-            BEAST_EXPECT(!tx.isFieldPresent(sfTxnSignature));
-            BEAST_EXPECT(tx.getFieldVL(sfSigningPubKey).empty());
-            if (BEAST_EXPECT(tx.isFieldPresent(sfSigners)))
+            BEAST_EXPECT(!tx->isFieldPresent(sfTxnSignature));
+            BEAST_EXPECT(tx->getFieldVL(sfSigningPubKey).empty());
+            if (BEAST_EXPECT(tx->isFieldPresent(sfSigners)))
             {
-                auto const& signers = tx.getFieldArray(sfSigners);
+                auto const& signers = tx->getFieldArray(sfSigners);
                 BEAST_EXPECT(signers.size() == 2);
                 BEAST_EXPECT(signers[0].getAccountID(sfAccount) <
                     signers[1].getAccountID(sfAccount));
@@ -326,15 +334,53 @@ private:
                     "95103211B25FD07976C76D1BD0B205B37887F9F3799BA91402"
                     "1B40A6906723F47A78B66E141204E0123660F8C9D0B3F1263A"
                     "8119F4523EDB3FE6C594BFBA3603";
+                auto const expectedHash = kt == KeyType::secp256k1 ?
+                    "49D28003A776A7099EEEF64C35646AE4338E3D9065AE6A6A5DB"
+                    "FFE4BDAEB260E" :
+                    "3FE5058B1D802309DF7360A2155A97EF7A5E4213976E4E21D1F"
+                    "B154FDFC0BCCF";
+
                 BEAST_EXPECT(to_string(signer.getAccountID(sfAccount)) ==
                     expectedAccount);
                 BEAST_EXPECT(strHex(signer.getFieldVL(sfSigningPubKey)) ==
                     expectedPubKey);
                 BEAST_EXPECT(strHex(signer.getFieldVL(sfTxnSignature)) ==
                     expectedSignature);
+                BEAST_EXPECT(to_string (tx->getTransactionID()) ==
+                    expectedHash);
             }
         }
     }
+
+    void
+    testFaults()
+    {
+        using namespace std::string_literals;
+
+        RippleKey key;
+        boost::optional<ripple::STTx> tx;
+        try
+        {
+            key.singleSign(tx);
+            fail();
+        }
+        catch (std::runtime_error const& e)
+        {
+            BEAST_EXPECT(e.what() == "Internal error.  "
+                "Empty std::optional passed to RippleKey::singleSign."s);
+        }
+        try
+        {
+            key.multiSign(tx);
+            fail();
+        }
+        catch (std::runtime_error const& e)
+        {
+            BEAST_EXPECT(e.what() == "Internal error.  "
+                "Empty std::optional passed to RippleKey::multiSign."s);
+        }
+    }
+
 
 public:
     void
@@ -353,6 +399,8 @@ public:
             testFile(kt);
             testSign(kt);
         }
+
+        testFaults();
     }
 };
 

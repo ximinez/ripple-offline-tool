@@ -135,7 +135,7 @@ int
 doSign(std::string const& data,
     boost::filesystem::path const& keyFile,
     std::function<void(offline::RippleKey const& key,
-        ripple::STTx& tx)> signingOp)
+        boost::optional<ripple::STTx>& tx)> signingOp)
 {
     using namespace offline;
     auto const fail = [&]()
@@ -158,7 +158,7 @@ doSign(std::string const& data,
         BOOST_ASSERT(tx);
         auto const rippleKey = RippleKey::make_RippleKey(keyFile);
 
-        signingOp(rippleKey, *tx);
+        signingOp(rippleKey, tx);
 
         std::cout << tx->getJson(0).toStyledString() << std::endl;
         return EXIT_SUCCESS;
@@ -175,20 +175,22 @@ int
 doSingleSign(std::string const& data,
     boost::filesystem::path const& keyFile)
 {
-    return doSign(data, keyFile, [](auto const& key, auto& tx)
-    {
-        key.singleSign(tx);
-    });
+    return doSign(data, keyFile,
+        [](offline::RippleKey const& key, boost::optional<ripple::STTx>& tx)
+        {
+            key.singleSign(tx);
+        });
 }
 
 int
 doMultiSign(std::string const& data,
     boost::filesystem::path const& keyFile)
 {
-    return doSign(data, keyFile, [](auto const& key, auto& tx)
-    {
-        key.multiSign(tx);
-    });
+    return doSign(data, keyFile,
+        [](offline::RippleKey const& key, boost::optional<ripple::STTx>& tx)
+        {
+            key.multiSign(tx);
+        });
 }
 
 int

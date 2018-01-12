@@ -147,26 +147,36 @@ RippleKey::writeToFile(boost::filesystem::path const& keyFile) const
 }
 
 void
-RippleKey::singleSign(ripple::STTx& tx) const
+RippleKey::singleSign(boost::optional<ripple::STTx>& tx) const
 {
+    if (! tx)
+    {
+        throw std::runtime_error ("Internal error.  "
+            "Empty std::optional passed to RippleKey::singleSign.");
+    }
     using namespace ripple;
-    tx.setFieldVL(sfSigningPubKey, publicKey_.slice());
-    tx.makeFieldAbsent(sfSigners);
-    tx.sign(publicKey_, secretKey_);
+    tx->setFieldVL(sfSigningPubKey, publicKey_.slice());
+    tx->makeFieldAbsent(sfSigners);
+    tx->sign(publicKey_, secretKey_);
 }
 
 void
-RippleKey::multiSign(ripple::STTx& tx) const
+RippleKey::multiSign(boost::optional<ripple::STTx>& tx) const
 {
+    if (! tx)
+    {
+        throw std::runtime_error ("Internal error.  "
+            "Empty std::optional passed to RippleKey::multiSign.");
+    }
     using namespace ripple;
-    tx.setFieldVL(sfSigningPubKey, Slice{ nullptr, 0 });
-    tx.makeFieldAbsent(sfTxnSignature);
+    tx->setFieldVL(sfSigningPubKey, Slice{ nullptr, 0 });
+    tx->makeFieldAbsent(sfTxnSignature);
 
     auto const accountID = calcAccountID(publicKey_);
-    Serializer s = buildMultiSigningData(tx, accountID);
+    Serializer s1 = buildMultiSigningData(*tx, accountID);
 
     auto const multisig = ripple::sign(
-        publicKey_, secretKey_, s.slice());
+        publicKey_, secretKey_, s1.slice());
 
     // Build an entry for this signer
     STObject signer(sfSigner);
@@ -175,9 +185,9 @@ RippleKey::multiSign(ripple::STTx& tx) const
     signer[sfTxnSignature] = multisig;
 
     // Insert the signer into the array of signers
-    if (!tx.isFieldPresent(sfSigners))
-        tx.setFieldArray(sfSigners, {});
-    STArray& signers{ tx.peekFieldArray(sfSigners) };
+    if (!tx->isFieldPresent(sfSigners))
+        tx->setFieldArray(sfSigners, {});
+    STArray& signers{ tx->peekFieldArray(sfSigners) };
     signers.emplace_back(std::move(signer));
 
     // Sort the Signers array by Account.  If it is not sorted when submitted
@@ -187,6 +197,13 @@ RippleKey::multiSign(ripple::STTx& tx) const
     {
         return (a[sfAccount] < b[sfAccount]);
     });
+
+    // Re-serialize this signed and sorted STTx so the hash is freshly computed.
+    Serializer s2;
+    tx->add (s2);
+    Blob txBlob = s2.getData ();
+    SerialIter sit {makeSlice(txBlob)};
+    tx.emplace (sit);
 }
 
 }   // serialize

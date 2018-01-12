@@ -98,14 +98,14 @@ public:
         @param tx Transaction to single sign
     */
     void
-    singleSign(ripple::STTx& tx) const;
+    singleSign(boost::optional<ripple::STTx>& tx) const;
 
     /** Add a signer to the transaction with the key
 
         @param tx Transaction to multi sign
     */
     void
-    multiSign(ripple::STTx& tx) const;
+    multiSign(boost::optional<ripple::STTx>& tx) const;
 
     /// KeyType of this key
     ripple::KeyType const&
