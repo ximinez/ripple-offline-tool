@@ -1,6 +1,5 @@
 # ripple-offline-tool
  
-[![CircleCI](https://circleci.com/gh/ximinez/ripple-offline-tool.svg?style=svg)](https://circleci.com/gh/ximinez/ripple-offline-tool)
 [![Build Status](https://travis-ci.org/ximinez/ripple-offline-tool.svg?branch=master)](https://travis-ci.org/ximinez/ripple-offline-tool)
 [![Build status](https://ci.appveyor.com/api/projects/status/ypsy8txb79ppe4g0?svg=true)](https://ci.appveyor.com/project/ximinez/ripple-offline-tool)
 [![codecov](https://codecov.io/gh/ximinez/ripple-offline-tool/branch/master/graph/badge.svg)](https://codecov.io/gh/ximinez/ripple-offline-tool)
@@ -10,7 +9,7 @@ Rippled serialization and transaction signing command-line tool
 ## Table of contents
 
 * [Dependencies](#dependencies)
-  * [ripple-libpp submodule](#ripple-libpp-submodule)
+  * [rippled submodule](#rippled-submodule)
   * [Other dependencies](#other-dependencies)
 * [Build and run](#build-and-run)
 * [Usage](#guide)
@@ -18,15 +17,15 @@ Rippled serialization and transaction signing command-line tool
 
 ## Dependencies
 
-### ripple-libpp submodule
+### rippled submodule
 
-This includes a git submodule to the ripple-libpp source code, which is not cloned by default. To get the ripple-libpp source, either clone this repository using
+This includes a git submodule to the rippled source code, which is not cloned by default. To get the rippled source, either clone this repository using
 ```
 $ git clone --recursive <location>
 ```
 or after cloning, run the following commands
 ```
-$ git submodule update --init --recursive
+$ git submodule update --init
 ```
 
 ### Other dependencies
@@ -42,10 +41,10 @@ For linux and other unix-like OSes, run the following commands:
 
 ```
 $ cd ${YOUR_RIPPLE_SERIALIZE_DIRECTORY}
-$ git submodule update --init --recursive  # if you haven't already
+$ git submodule update --init  # if you haven't already
 $ mkdir -p build/gcc.debug
 $ cd build/gcc.debug
-$ cmake ../..
+$ cmake ../.. -DCMAKE_BUILD_TYPE=Release
 $ cmake --build .
 $ ./ripple-offline-tool --unittest
 $ ./ripple-offline-tool --help
@@ -56,13 +55,13 @@ and run the following commands:
 
 ```
 > cd %YOUR_RIPPLE_SERIALIZE_DIRECTORY%
-> git submodule update --init --recursive  # if you haven't already
+> git submodule update --init  # if you haven't already
 > mkdir build
 > cd build
-> cmake -G"Visual Studio 14 2015 Win64" ..
-> cmake --build .
-> .\Debug\ripple-offline-tool.exe --unittest
-> .\Debug\ripple-offline-tool.exe --help
+> cmake -G"Visual Studio 15 2017 Win64" ..
+> cmake --build . -config Release
+> .\Release\ripple-offline-tool.exe --unittest
+> .\Release\ripple-offline-tool.exe --help
 ```
 
 32-bit Windows builds are not officially supported.

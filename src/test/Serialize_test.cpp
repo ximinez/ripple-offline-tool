@@ -22,11 +22,11 @@
 #include <RippleKey.h>
 #include <test/KnownTestData.h>
 #include <test/KeyFileGuard.h>
+#include <ripple/basics/base64.h>
 #include <ripple/beast/unit_test.h>
 #include <ripple/protocol/HashPrefix.h>
 #include <ripple/protocol/Sign.h>
 #include <ripple/protocol/TxFlags.h>
-#include <beast/core/detail/base64.hpp>
 
 namespace offline {
 

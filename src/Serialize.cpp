@@ -20,11 +20,11 @@
 
 #include <Serialize.h>
 #include <ripple/basics/StringUtilities.h>
+#include <ripple/basics/base64.h>
 #include <ripple/json/json_reader.h>
 #include <ripple/json/to_string.h>
 #include <ripple/protocol/HashPrefix.h>
 #include <ripple/protocol/Sign.h>
-#include <beast/core/detail/base64.hpp>
 #include <boost/filesystem.hpp>
 #include <fstream>
 

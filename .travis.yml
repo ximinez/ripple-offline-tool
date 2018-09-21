@@ -12,12 +12,14 @@ env:
     - LCOV_ROOT=$HOME/lcov
     - GDB_ROOT=$HOME/gdb
     - LCOV_EXCLUDE_FILES="*/src/test/*"
-    - BOOST_ROOT=$HOME/boost_1_64_0
-    - BOOST_URL='http://downloads.sourceforge.net/project/boost/boost/1.64.0/boost_1_64_0.tar.gz'
+    - BOOST_ROOT=$HOME/boost_1_67_0
+    - BOOST_URL='http://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.tar.gz'
 
 addons:
   apt:
-    sources: ['ubuntu-toolchain-r-test']
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-trusty-5.0
     packages:
       - gcc-5
       - g++-5
@@ -27,33 +29,31 @@ addons:
       - libssl-dev
       - libstdc++6
       - binutils-gold
-      # Provides a backtrace if the unittests crash
       - gdb
-      # needed to build gdb
       - texinfo
+      - cmake
+      - lcov
+      - llvm-5.0
+      - clang-5.0
 
 matrix:
   include:
-    # Default BUILD is scons. Default APP is rippled.
 
     - compiler: gcc
       env:
       - GCC_VER=5
+      - BUILD_TYPE=Debug
       - TARGET=coverage
-      - PATH=$PWD/cmake/bin:$PATH
+      - CMAKE_EXTRA_ARGS=-Dcoverage=ON
       - APP=ripple-offline-tool
       - APP_ARGS=--unittest
-      - BUILD=cmake
 
     - compiler: clang
       env:
       - GCC_VER=5
-      - TARGET=debug
-      - CLANG_VER=3.8
-      - PATH=$PWD/llvm-$LLVM_VERSION/bin:$PWD/cmake/bin:$PATH
+      - BUILD_TYPE=Debug
       - APP=ripple-offline-tool
       - APP_ARGS=--unittest
-      - BUILD=cmake
       cache:
         directories:
           - $GDB_ROOT
@@ -61,34 +61,27 @@ matrix:
     - compiler: gcc
       env:
       - GCC_VER=5
-      - TARGET=release
-      - PATH=$PWD/cmake/bin:$PATH
+      - BUILD_TYPE=Release
       - APP=ripple-offline-tool
       - APP_ARGS=--unittest
-      - BUILD=cmake
 
     - compiler: clang
       env:
       - GCC_VER=5
-      - TARGET=release
-      - CLANG_VER=3.8
-      - PATH=$PWD/llvm-$LLVM_VERSION/bin:$PWD/cmake/bin:$PATH
+      - BUILD_TYPE=Release
       - APP=ripple-offline-tool
       - APP_ARGS=--unittest
-      - BUILD=cmake
 
 cache:
   directories:
   - $BOOST_ROOT
-  - llvm-$LLVM_VERSION
-  - cmake
   - $GDB_ROOT
 
 before_install:
-  - ( cd extras/ripple-libpp/extras/rippled && bin/ci/ubuntu/install-dependencies.sh ../../../.. )
+  - ( cd extras/rippled && bin/ci/ubuntu/install-dependencies.sh ../.. )
 
 script:
-  - extras/ripple-libpp/extras/rippled/bin/ci/ubuntu/build-and-test.sh
+  - extras/rippled/bin/ci/ubuntu/build-and-test.sh
 
 notifications:
   email:
@@ -97,4 +90,3 @@ notifications:
     channels:
       - "chat.freenode.net#ripple-dev"
 
-dist: precise

@@ -122,9 +122,9 @@ RippleKey::writeToFile(boost::filesystem::path const& keyFile) const
     jv[jss::master_seed_hex] = strHex(seed_.data(), seed_.size());
     jv[jss::master_key] = seedAs1751(seed_);
     jv[jss::account_id] = toBase58(calcAccountID(publicKey_));
-    jv[jss::public_key] = toBase58(TOKEN_ACCOUNT_PUBLIC, publicKey_);
+    jv[jss::public_key] = toBase58(TokenType::AccountPublic, publicKey_);
     jv[jss::public_key_hex] = strHex(publicKey_.data(), publicKey_.size());
-    jv["secret_key"] = toBase58(TOKEN_ACCOUNT_SECRET, secretKey_);
+    jv["secret_key"] = toBase58(TokenType::AccountSecret, secretKey_);
     jv["secret_key_hex"] = strHex(secretKey_.data(), secretKey_.size());
 
     if (!keyFile.parent_path().empty())

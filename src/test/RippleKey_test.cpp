@@ -48,8 +48,8 @@ private:
         BEAST_EXPECT(key1.keyType() == kt);
         BEAST_EXPECT(key2.keyType() == kt);
         BEAST_EXPECT(key1.publicKey() != key2.publicKey());
-        auto const pubkey1 = toBase58(TOKEN_ACCOUNT_PUBLIC, key1.publicKey());
-        auto const pubkey2 = toBase58(TOKEN_ACCOUNT_PUBLIC, key2.publicKey());
+        auto const pubkey1 = toBase58(TokenType::AccountPublic, key1.publicKey());
+        auto const pubkey2 = toBase58(TokenType::AccountPublic, key2.publicKey());
         BEAST_EXPECT(pubkey1.length() == 52);
         BEAST_EXPECT(pubkey2.length() == 52);
         BEAST_EXPECT(pubkey1 != pubkey2);
@@ -66,7 +66,7 @@ private:
         auto const seed = generateSeed(passphrase);
 
         RippleKey const key(kt, seed);
-        auto const pubkey = toBase58(TOKEN_ACCOUNT_PUBLIC, key.publicKey());
+        auto const pubkey = toBase58(TokenType::AccountPublic, key.publicKey());
         BEAST_EXPECT(key.keyType() == kt);
         BEAST_EXPECT(pubkey == (kt == KeyType::secp256k1 ?
             "aBQG8RQAzjs1eTKFEAQXr2gS4utcDiEC9wmi7pfUPTi27VCahwgw" :
@@ -201,11 +201,11 @@ private:
         BEAST_EXPECT(jKeys[jss::master_seed_hex] ==
             strHex(seed.data(), seed.size()));
         BEAST_EXPECT(jKeys[jss::public_key] ==
-            toBase58(TOKEN_ACCOUNT_PUBLIC, key.publicKey()));
+            toBase58(TokenType::AccountPublic, key.publicKey()));
         BEAST_EXPECT(jKeys[jss::public_key_hex] ==
             strHex(key.publicKey().data(), key.publicKey().size()));
         BEAST_EXPECT(jKeys["secret_key"] ==
-            toBase58(TOKEN_ACCOUNT_SECRET, secretKey));
+            toBase58(TokenType::AccountSecret, secretKey));
         BEAST_EXPECT(jKeys["secret_key_hex"] ==
             strHex(secretKey.data(), secretKey.size()));
     }
