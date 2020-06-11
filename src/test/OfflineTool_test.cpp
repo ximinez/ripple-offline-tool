@@ -253,7 +253,8 @@ private:
             auto go = [&](std::string const& json)
             {
                 auto const tx = make_sttx(json);
-                BEAST_EXPECT(tx.checkSign(true).first);
+                BEAST_EXPECT(tx.checkSign(
+                    STTx::RequireFullyCanonicalSig::yes).first);
                 BEAST_EXPECT(tx[sfSigningPubKey] !=
                     (*origTx)[sfSigningPubKey]);
                 BEAST_EXPECT(tx[sfTxnSignature] !=
@@ -332,9 +333,10 @@ private:
 
             BEAST_EXPECT(exit == EXIT_FAILURE);
             BEAST_EXPECTS(coutRedirect.out().empty(), coutRedirect.out());
-            BEAST_EXPECT(coutRedirect.err() ==
+            BEAST_EXPECTS(coutRedirect.err() ==
                 "Unable to sign \"" + shortTx + "\"\n"
-                "Detail: transaction not valid\n");
+                "Detail: Field 'Sequence' is required but missing.\n",
+                coutRedirect.err() + "\n\n" + shortTx);
         }
         {
             CoutRedirect coutRedirect;
@@ -382,7 +384,8 @@ private:
                     BEAST_EXPECT(exit == EXIT_SUCCESS);
                     BEAST_EXPECTS(coutRedirect.err().empty(), coutRedirect.err());
                     auto const tx = make_sttx(coutRedirect.out());
-                    BEAST_EXPECT(tx.checkSign(true).first);
+                    BEAST_EXPECT(tx.checkSign(
+                        STTx::RequireFullyCanonicalSig::yes).first);
                     BEAST_EXPECT(tx.isFieldPresent(sfSigningPubKey));
                     BEAST_EXPECT(tx[sfSigningPubKey].empty());
                     BEAST_EXPECT(!tx.isFieldPresent(sfTxnSignature));
@@ -404,7 +407,8 @@ private:
                 BEAST_EXPECT(exit == EXIT_SUCCESS);
                 BEAST_EXPECTS(coutRedirect.err().empty(), coutRedirect.err());
                 auto const tx = make_sttx(coutRedirect.out());
-                BEAST_EXPECT(tx.checkSign(true).first);
+                BEAST_EXPECT(tx.checkSign(
+                    STTx::RequireFullyCanonicalSig::yes).first);
                 BEAST_EXPECT(tx.isFieldPresent(sfSigningPubKey));
                 BEAST_EXPECT(tx[sfSigningPubKey].empty());
                 BEAST_EXPECT(!tx.isFieldPresent(sfTxnSignature));
@@ -454,9 +458,10 @@ private:
 
             BEAST_EXPECT(exit == EXIT_FAILURE);
             BEAST_EXPECTS(coutRedirect.out().empty(), coutRedirect.out());
-            BEAST_EXPECT(coutRedirect.err() ==
+            BEAST_EXPECTS(coutRedirect.err() ==
                 "Unable to sign \"" + shortTx + "\"\n"
-                "Detail: transaction not valid\n");
+                "Detail: Field 'Sequence' is required but missing.\n",
+                coutRedirect.err() + "\n\n" + shortTx);
         }
         {
             CoutRedirect coutRedirect;

@@ -23,9 +23,10 @@
 #include <test/KnownTestData.h>
 #include <test/KeyFileGuard.h>
 #include <ripple/basics/StringUtilities.h>
+#include <ripple/basics/strHex.h>
 #include <ripple/beast/unit_test.h>
 #include <ripple/json/json_reader.h>
-#include <ripple/protocol/JsonFields.h>
+#include <ripple/protocol/jss.h>
 
 namespace offline {
 
@@ -75,7 +76,7 @@ private:
         auto const otherkeys = {
             RippleKey::make_RippleKey(kt, passphrase),
             RippleKey::make_RippleKey(kt, toBase58(seed)),
-            RippleKey::make_RippleKey(kt, strHex(seed.data(), seed.size())),
+            RippleKey::make_RippleKey(kt, strHex(seed)),
             RippleKey::make_RippleKey(kt, seedAs1751(seed))
         };
         for (auto const& other : otherkeys)
@@ -199,15 +200,15 @@ private:
         BEAST_EXPECT(jKeys[jss::master_key] == seedAs1751(seed));
         BEAST_EXPECT(jKeys[jss::master_seed] == toBase58(seed));
         BEAST_EXPECT(jKeys[jss::master_seed_hex] ==
-            strHex(seed.data(), seed.size()));
+            strHex(seed));
         BEAST_EXPECT(jKeys[jss::public_key] ==
             toBase58(TokenType::AccountPublic, key.publicKey()));
         BEAST_EXPECT(jKeys[jss::public_key_hex] ==
-            strHex(key.publicKey().data(), key.publicKey().size()));
+            strHex(key.publicKey()));
         BEAST_EXPECT(jKeys["secret_key"] ==
             toBase58(TokenType::AccountSecret, secretKey));
         BEAST_EXPECT(jKeys["secret_key_hex"] ==
-            strHex(secretKey.data(), secretKey.size()));
+            strHex(secretKey));
     }
 
     void
@@ -223,31 +224,32 @@ private:
 
         boost::optional<ripple::STTx> tx {std::move(*obj)};
         // The hard-coded version is signed
-        auto check = tx->checkSign(true);
+        auto check = tx->checkSign(STTx::RequireFullyCanonicalSig::yes);
         BEAST_EXPECT(check.first);
         {
             auto const key = RippleKey::make_RippleKey(kt,
                 std::string("alice"));
             auto const expectedSignature = kt == KeyType::secp256k1 ?
                 tx->getFieldVL(sfTxnSignature) :
-                strUnHex("0751E8D38C26E8B6C953766A8A58570CA0CB93E57B86047F1FEF8DA3D7"
+                *strUnHex("0751E8D38C26E8B6C953766A8A58570CA0CB93E57B86047F1FEF8DA3D7"
                     "9DFB97E78F4E59365C88EEE0E94EF7C1A2155A828B239AC00F3E95802D"
-                    "851ABB113F06").first;
+                    "851ABB113F06");
             auto const expectedSigningKey = kt == KeyType::secp256k1 ?
                 tx->getFieldVL(sfSigningPubKey) :
-                strUnHex("ED4A9D72F2557B714713DC8BA7C6F9576BCC06117A52F6C32"
-                    "F1E26FEEF9819EC8E").first;
+                *strUnHex("ED4A9D72F2557B714713DC8BA7C6F9576BCC06117A52F6C32"
+                    "F1E26FEEF9819EC8E");
 
             // Remove the signature
             tx->makeFieldAbsent(sfTxnSignature);
             tx->setAccountID(sfAccount, calcAccountID(key.publicKey()));
-            check = tx->checkSign(true);
+            check = tx->checkSign(STTx::RequireFullyCanonicalSig::yes);
             BEAST_EXPECT(!check.first);
             BEAST_EXPECT(check.second == "Invalid signature.");
 
             // Now re-sign it
             key.singleSign(tx);
-            BEAST_EXPECT(tx->checkSign(true).first);
+            BEAST_EXPECT(tx->checkSign(
+                STTx::RequireFullyCanonicalSig::yes).first);
             // Same signature
             BEAST_EXPECT(tx->getFieldVL(sfSigningPubKey) == expectedSigningKey);
             BEAST_EXPECT(tx->getFieldVL(sfTxnSignature) == expectedSignature);
@@ -261,7 +263,8 @@ private:
 
             // Now multisign it with the test key
             key.multiSign(tx);
-            BEAST_EXPECT(tx->checkSign(true).first);
+            BEAST_EXPECT(tx->checkSign(
+                STTx::RequireFullyCanonicalSig::yes).first);
             // No single signature
             BEAST_EXPECT(!tx->isFieldPresent(sfTxnSignature));
             BEAST_EXPECT(tx->getFieldVL(sfSigningPubKey).empty());
@@ -305,7 +308,8 @@ private:
             auto const key2 = RippleKey::make_RippleKey(kt,
                 passphrase);
             key2.multiSign(tx);
-            BEAST_EXPECT(tx->checkSign(true).first);
+            BEAST_EXPECT(tx->checkSign(
+                STTx::RequireFullyCanonicalSig::yes).first);
             // No single signature
             BEAST_EXPECT(!tx->isFieldPresent(sfTxnSignature));
             BEAST_EXPECT(tx->getFieldVL(sfSigningPubKey).empty());

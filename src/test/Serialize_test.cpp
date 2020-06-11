@@ -127,6 +127,8 @@ private:
     {
         testcase("Deserialize");
 
+        using namespace ripple;
+
         auto test = [&](TestItem const& testItem,
             std::function<bool(ripple::STObject&,
                 Json::Value const& known)> extra = nullptr)
@@ -143,7 +145,7 @@ private:
                         check = extra(*obj, known);
                     if (check)
                     {
-                        BEAST_EXPECT(obj->getJson(0) == known);
+                        BEAST_EXPECT(obj->getJson(JsonOptions::none) == known);
                     }
                 }
             }
@@ -157,7 +159,7 @@ private:
         {
             ripple::STTx tx{ std::move(obj) };
             this->verifyKnownTx(tx);
-            this->BEAST_EXPECT(tx.getJson(0) == known);
+            this->BEAST_EXPECT(tx.getJson(JsonOptions::none) == known);
             return false;
         });
         test(getKnownTxUnsigned());
@@ -183,7 +185,8 @@ private:
                         (*origTx)[sfSigningPubKey]);
                     BEAST_EXPECT(tx[sfTxnSignature] ==
                         (*origTx)[sfTxnSignature]);
-                    BEAST_EXPECT(tx.checkSign(true).first);
+                    BEAST_EXPECT(tx.checkSign(
+                        STTx::RequireFullyCanonicalSig::yes).first);
                 }
                 {
                     auto const tx = offline::make_sttx(known.JsonText);
@@ -191,7 +194,8 @@ private:
                         (*origTx)[sfSigningPubKey]);
                     BEAST_EXPECT(tx[sfTxnSignature] ==
                         (*origTx)[sfTxnSignature]);
-                    BEAST_EXPECT(tx.checkSign(true).first);
+                    BEAST_EXPECT(tx.checkSign(
+                        STTx::RequireFullyCanonicalSig::yes).first);
                 }
             }
         }
@@ -205,7 +209,9 @@ private:
             }
             catch (std::exception const& e)
             {
-                BEAST_EXPECT(std::string{ e.what() } == "Field not found");
+                BEAST_EXPECTS(std::string{ e.what() } ==
+                    "Field not found: TransactionType",
+                    e.what());
             }
             try
             {
@@ -214,7 +220,8 @@ private:
             }
             catch (std::exception const& e)
             {
-                BEAST_EXPECT(std::string{ e.what() } == "Field not found");
+                BEAST_EXPECTS(std::string{ e.what() } ==
+                    "Field not found: TransactionType", e.what());
             }
         }
         {

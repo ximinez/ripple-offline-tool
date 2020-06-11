@@ -19,6 +19,7 @@
 //==============================================================================
 
 #include <Serialize.h>
+#include <ripple/basics/strHex.h>
 #include <ripple/basics/StringUtilities.h>
 #include <ripple/basics/base64.h>
 #include <ripple/json/json_reader.h>
@@ -66,10 +67,10 @@ deserialize(std::string const& blob)
 
     auto const unhex{ strUnHex(blob) };
 
-    if (!unhex.second || !unhex.first.size())
+    if (!unhex || !unhex->size())
         return{};
 
-    SerialIter sitTrans{ makeSlice(unhex.first) };
+    SerialIter sitTrans{ makeSlice(*unhex) };
     // Can Throw
     return STObject{ std::ref(sitTrans), sfGeneric };
 }

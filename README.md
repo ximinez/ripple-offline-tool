@@ -9,7 +9,7 @@ Rippled serialization and transaction signing command-line tool
 ## Table of contents
 
 * [Dependencies](#dependencies)
-  * [rippled submodule](#rippled-submodule)
+  * [rippled inclusion](#rippled-inclusion)
   * [Other dependencies](#other-dependencies)
 * [Build and run](#build-and-run)
 * [Usage](#guide)
@@ -17,23 +17,29 @@ Rippled serialization and transaction signing command-line tool
 
 ## Dependencies
 
-### rippled submodule
+### rippled inclusion
 
-This includes a git submodule to the rippled source code, which is not cloned by default. To get the rippled source, either clone this repository using
+This project depends on the [rippled](https://github.com/ripple/rippled.git)
+repository for core signing functionality. If you have built and installed
+rippled, you can point this project at your installation using
+`CMAKE_PREFIX_PATH` (if you have installed in a standard system search path,
+this is not needed), e.g.:
+
 ```
-$ git clone --recursive <location>
+$ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/path/to/rippled/installation/root ../..
 ```
-or after cloning, run the following commands
-```
-$ git submodule update --init
-```
+
+Alternatively, if you do not have a local installation of rippled development
+files that you want to use, then this project will fetch an appropriate
+version of the source code using CMake's FetchContent.
+
 
 ### Other dependencies
 
 * C++14 or greater
-* [Boost](http://www.boost.org/)
+* [Boost](http://www.boost.org/) - 1.70+ required
 * [OpenSSL](https://www.openssl.org/)
-* [cmake](https://cmake.org)
+* [cmake](https://cmake.org) - 3.11+ required
 
 ## Build and run
 
@@ -41,11 +47,10 @@ For linux and other unix-like OSes, run the following commands:
 
 ```
 $ cd ${YOUR_RIPPLE_SERIALIZE_DIRECTORY}
-$ git submodule update --init  # if you haven't already
-$ mkdir -p build/gcc.debug
-$ cd build/gcc.debug
-$ cmake ../.. -DCMAKE_BUILD_TYPE=Release
-$ cmake --build .
+$ mkdir -p build
+$ cd build
+$ cmake .. -DCMAKE_BUILD_TYPE=Release
+$ cmake --build . --parallel
 $ ./ripple-offline-tool --unittest
 $ ./ripple-offline-tool --help
 ```
@@ -55,11 +60,10 @@ and run the following commands:
 
 ```
 > cd %YOUR_RIPPLE_SERIALIZE_DIRECTORY%
-> git submodule update --init  # if you haven't already
 > mkdir build
 > cd build
 > cmake -G"Visual Studio 15 2017 Win64" ..
-> cmake --build . -config Release
+> cmake --build . --config Release --parallel
 > .\Release\ripple-offline-tool.exe --unittest
 > .\Release\ripple-offline-tool.exe --help
 ```
@@ -75,7 +79,7 @@ Run `ripple-offline-tool --help` for usage information.
 The key file contains one JSON object. That object has a series of string
 name/value pairs. The only required fields are `key_type` and
 `master_seed`. Other fields are derived internally as needed. This
-simplifies manual keyfile creation for existing ripple accounts. Example:
+simplifies manual keyfile creation for existing XRPL accounts. Example:
 
 ```
 {

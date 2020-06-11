@@ -19,9 +19,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //==============================================================================
 
 #include <RippleKey.h>
+#include <ripple/basics/strHex.h>
 #include <ripple/json/json_reader.h>
 #include <ripple/json/to_string.h>
-#include <ripple/protocol/JsonFields.h>
+#include <ripple/protocol/jss.h>
 #include <ripple/protocol/Sign.h>
 #include <boost/filesystem.hpp>
 #include <fstream>
@@ -97,7 +98,7 @@ RippleKey::make_RippleKey(
     }
 
     auto const keyType = keyTypeFromString (jKeys[jss::key_type].asString());
-    if (keyType == KeyType::invalid)
+    if (!keyType)
     {
         throw std::runtime_error (
             "Invalid 'key_type' field \"" +
@@ -107,7 +108,7 @@ RippleKey::make_RippleKey(
     }
 
     return RippleKey::make_RippleKey (
-        keyType, jKeys[jss::master_seed].asString());
+        *keyType, jKeys[jss::master_seed].asString());
 }
 
 void
@@ -119,13 +120,13 @@ RippleKey::writeToFile(boost::filesystem::path const& keyFile) const
     Json::Value jv(Json::objectValue);
     jv[jss::key_type] = to_string(keyType_);
     jv[jss::master_seed] = toBase58(seed_);
-    jv[jss::master_seed_hex] = strHex(seed_.data(), seed_.size());
+    jv[jss::master_seed_hex] = strHex(seed_);
     jv[jss::master_key] = seedAs1751(seed_);
     jv[jss::account_id] = toBase58(calcAccountID(publicKey_));
     jv[jss::public_key] = toBase58(TokenType::AccountPublic, publicKey_);
-    jv[jss::public_key_hex] = strHex(publicKey_.data(), publicKey_.size());
+    jv[jss::public_key_hex] = strHex(publicKey_);
     jv["secret_key"] = toBase58(TokenType::AccountSecret, secretKey_);
-    jv["secret_key_hex"] = strHex(secretKey_.data(), secretKey_.size());
+    jv["secret_key_hex"] = strHex(secretKey_);
 
     if (!keyFile.parent_path().empty())
     {

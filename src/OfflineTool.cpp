@@ -27,6 +27,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <boost/preprocessor/stringize.hpp>
 #include <boost/program_options.hpp>
 #ifdef BOOST_MSVC
 # ifndef WIN32_LEAN_AND_MEAN // VC_EXTRALEAN
@@ -45,7 +46,7 @@ char const* const versionString =
     //  The build version number. You must edit this for each release
     //  and follow the format described at http://semver.org/
     //
-        "0.1.0"
+        "0.2.0"
 
 #if defined(DEBUG) || defined(SANITIZER)
        "+"
@@ -57,7 +58,7 @@ char const* const versionString =
 #endif
 
 #ifdef SANITIZER
-        BEAST_PP_STR1_(SANITIZER)
+        BOOST_PP_STRINGIZE(SANITIZER)
 #endif
 #endif
 
@@ -101,6 +102,8 @@ doSerialize(std::string const& data)
 int
 doDeserialize(std::string const& data)
 {
+    using namespace ripple;
+
     auto const fail = [&]
     {
         std::cerr << "Unable to deserialize \"" << data << "\"" <<
@@ -112,7 +115,7 @@ doDeserialize(std::string const& data)
 
         if (result)
         {
-            std::cout << result->getJson(0).toStyledString() << std::endl;
+            std::cout << result->getJson(JsonOptions::none).toStyledString() << std::endl;
             return EXIT_SUCCESS;
         }
         else
@@ -137,6 +140,7 @@ doSign(std::string const& data,
     std::function<void(offline::RippleKey const& key,
         boost::optional<ripple::STTx>& tx)> signingOp)
 {
+    using namespace ripple;
     using namespace offline;
     auto const fail = [&]()
     {
@@ -160,7 +164,7 @@ doSign(std::string const& data,
 
         signingOp(rippleKey, tx);
 
-        std::cout << tx->getJson(0).toStyledString() << std::endl;
+        std::cout << tx->getJson(JsonOptions::none).toStyledString() << std::endl;
         return EXIT_SUCCESS;
     }
     catch (std::exception const& e)
@@ -207,9 +211,9 @@ doCreateKeyfile(boost::filesystem::path const& keyFile,
             keyFile.string());
 
     auto const kt = keytype ?
-        boost::optional<KeyType>{keyTypeFromString(*keytype)} :
+        keyTypeFromString(*keytype) :
         boost::none;
-    if (kt && *kt == KeyType::invalid)
+    if (keytype && !kt)
     {
         std::cerr << "Invalid key type: \"" << *keytype << "\"" <<
             std::endl;
