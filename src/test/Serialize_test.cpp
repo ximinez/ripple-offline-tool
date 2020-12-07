@@ -181,21 +181,21 @@ private:
             {
                 {
                     auto const tx = offline::make_sttx(known.SerializedText);
-                    BEAST_EXPECT(tx[sfSigningPubKey] ==
-                        (*origTx)[sfSigningPubKey]);
-                    BEAST_EXPECT(tx[sfTxnSignature] ==
-                        (*origTx)[sfTxnSignature]);
-                    BEAST_EXPECT(tx.checkSign(
-                        STTx::RequireFullyCanonicalSig::yes).first);
+                    BEAST_EXPECT(
+                        tx[sfSigningPubKey] == (*origTx)[sfSigningPubKey]);
+                    BEAST_EXPECT(
+                        tx[sfTxnSignature] == (*origTx)[sfTxnSignature]);
+                    BEAST_EXPECT(
+                        tx.checkSign(STTx::RequireFullyCanonicalSig::yes));
                 }
                 {
                     auto const tx = offline::make_sttx(known.JsonText);
-                    BEAST_EXPECT(tx[sfSigningPubKey] ==
-                        (*origTx)[sfSigningPubKey]);
-                    BEAST_EXPECT(tx[sfTxnSignature] ==
-                        (*origTx)[sfTxnSignature]);
-                    BEAST_EXPECT(tx.checkSign(
-                        STTx::RequireFullyCanonicalSig::yes).first);
+                    BEAST_EXPECT(
+                        tx[sfSigningPubKey] == (*origTx)[sfSigningPubKey]);
+                    BEAST_EXPECT(
+                        tx[sfTxnSignature] == (*origTx)[sfTxnSignature]);
+                    BEAST_EXPECT(
+                        tx.checkSign(STTx::RequireFullyCanonicalSig::yes));
                 }
             }
         }

@@ -18,8 +18,9 @@
 */
 //==============================================================================
 
-#include <boost/optional.hpp>
+#include <optional>
 #include <vector>
+#include <string>
 
 namespace boost
 {
@@ -52,14 +53,14 @@ doMultiSign(std::string const& data,
 
 int
 doCreateKeyfile(boost::filesystem::path const& keyFile,
-    boost::optional<std::string> const& keytype,
-    boost::optional<std::string> const& seed);
+    std::optional<std::string> const& keytype,
+    std::optional<std::string> const& seed);
 
 int
 runCommand (const std::string& command,
     std::vector <std::string> const& args,
     boost::filesystem::path const& keyFile,
-    boost::optional<std::string> const& keyType,
+    std::optional<std::string> const& keyType,
     InputType const& inputType);
 
 std::string const&

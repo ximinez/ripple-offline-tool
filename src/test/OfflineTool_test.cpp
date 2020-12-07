@@ -26,6 +26,7 @@
 #include <ripple/beast/unit_test.h>
 #include <ripple/protocol/SecretKey.h>
 #include <boost/format.hpp>
+#include <string>
 
 namespace offline {
 
@@ -253,12 +254,9 @@ private:
             auto go = [&](std::string const& json)
             {
                 auto const tx = make_sttx(json);
-                BEAST_EXPECT(tx.checkSign(
-                    STTx::RequireFullyCanonicalSig::yes).first);
-                BEAST_EXPECT(tx[sfSigningPubKey] !=
-                    (*origTx)[sfSigningPubKey]);
-                BEAST_EXPECT(tx[sfTxnSignature] !=
-                    (*origTx)[sfTxnSignature]);
+                BEAST_EXPECT(tx.checkSign(STTx::RequireFullyCanonicalSig::yes));
+                BEAST_EXPECT(tx[sfSigningPubKey] != (*origTx)[sfSigningPubKey]);
+                BEAST_EXPECT(tx[sfTxnSignature] != (*origTx)[sfTxnSignature]);
                 BEAST_EXPECT(!tx.isFieldPresent(sfSigners));
             };
             {
@@ -384,8 +382,8 @@ private:
                     BEAST_EXPECT(exit == EXIT_SUCCESS);
                     BEAST_EXPECTS(coutRedirect.err().empty(), coutRedirect.err());
                     auto const tx = make_sttx(coutRedirect.out());
-                    BEAST_EXPECT(tx.checkSign(
-                        STTx::RequireFullyCanonicalSig::yes).first);
+                    BEAST_EXPECT(
+                        tx.checkSign(STTx::RequireFullyCanonicalSig::yes));
                     BEAST_EXPECT(tx.isFieldPresent(sfSigningPubKey));
                     BEAST_EXPECT(tx[sfSigningPubKey].empty());
                     BEAST_EXPECT(!tx.isFieldPresent(sfTxnSignature));
@@ -407,8 +405,7 @@ private:
                 BEAST_EXPECT(exit == EXIT_SUCCESS);
                 BEAST_EXPECTS(coutRedirect.err().empty(), coutRedirect.err());
                 auto const tx = make_sttx(coutRedirect.out());
-                BEAST_EXPECT(tx.checkSign(
-                    STTx::RequireFullyCanonicalSig::yes).first);
+                BEAST_EXPECT(tx.checkSign(STTx::RequireFullyCanonicalSig::yes));
                 BEAST_EXPECT(tx.isFieldPresent(sfSigningPubKey));
                 BEAST_EXPECT(tx[sfSigningPubKey].empty());
                 BEAST_EXPECT(!tx.isFieldPresent(sfTxnSignature));
@@ -491,8 +488,8 @@ private:
         KeyFileGuard g(*this, subdir);
         path const keyFile = subdir / ".ripple" / "secret-key.txt";
 
-        auto test = [&](boost::optional<std::string> const& kt,
-            boost::optional<std::string> const& seed)
+        auto test = [&](std::optional<std::string> const& kt,
+            std::optional<std::string> const& seed)
         {
             auto const go = [&](bool useCommand)
             {
@@ -552,9 +549,9 @@ private:
             go(true);
         };
 
-        test(boost::none, boost::none);
-        test(boost::none, std::string{ "masterpassphrase" });
-        test(std::string(to_string(KeyType::ed25519)), boost::none);
+        test(std::nullopt, std::nullopt);
+        test(std::nullopt, std::string{ "masterpassphrase" });
+        test(std::string(to_string(KeyType::ed25519)), std::nullopt);
         test(std::string(to_string(KeyType::secp256k1)),
             std::string{ "alice" });
 
@@ -564,7 +561,7 @@ private:
             CoutRedirect coutRedirect;
 
             auto const exit = doCreateKeyfile(keyFile,
-                std::string{ "NSA special" }, boost::none);
+                std::string{ "NSA special" }, std::nullopt);
 
             BEAST_EXPECT(exit == EXIT_FAILURE);
             BEAST_EXPECT(!exists(keyFile));

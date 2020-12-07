@@ -40,8 +40,8 @@ RippleKey::RippleKey(ripple::KeyType const& keyType,
 }
 
 RippleKey
-RippleKey::make_RippleKey(boost::optional<ripple::KeyType> const& keyType,
-    boost::optional<std::string> const& rawseed)
+RippleKey::make_RippleKey(std::optional<ripple::KeyType> const& keyType,
+    std::optional<std::string> const& rawseed)
 {
     if (keyType && rawseed)
     {
@@ -148,7 +148,7 @@ RippleKey::writeToFile(boost::filesystem::path const& keyFile) const
 }
 
 void
-RippleKey::singleSign(boost::optional<ripple::STTx>& tx) const
+RippleKey::singleSign(std::optional<ripple::STTx>& tx) const
 {
     if (! tx)
     {
@@ -162,7 +162,7 @@ RippleKey::singleSign(boost::optional<ripple::STTx>& tx) const
 }
 
 void
-RippleKey::multiSign(boost::optional<ripple::STTx>& tx) const
+RippleKey::multiSign(std::optional<ripple::STTx>& tx) const
 {
     if (! tx)
     {

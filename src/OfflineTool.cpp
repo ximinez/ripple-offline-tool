@@ -46,7 +46,7 @@ char const* const versionString =
     //  The build version number. You must edit this for each release
     //  and follow the format described at http://semver.org/
     //
-        "0.3.0"
+        "0.4.0"
 
 #if defined(DEBUG) || defined(SANITIZER)
        "+"
@@ -84,7 +84,7 @@ doSerialize(std::string const& data)
     auto const tx = [&]
     {
         auto const json = offline::parseJson(data);
-        return json ? offline::makeObject(json) : boost::none;
+        return json ? offline::makeObject(json) : std::nullopt;
     }();
     if (!tx)
     {
@@ -138,7 +138,7 @@ int
 doSign(std::string const& data,
     boost::filesystem::path const& keyFile,
     std::function<void(offline::RippleKey const& key,
-        boost::optional<ripple::STTx>& tx)> signingOp)
+        std::optional<ripple::STTx>& tx)> signingOp)
 {
     using namespace ripple;
     using namespace offline;
@@ -146,7 +146,7 @@ doSign(std::string const& data,
     {
         std::cerr << "Unable to sign \"" << data << "\"" << std::endl;
     };
-    boost::optional<ripple::STTx> tx;
+    std::optional<ripple::STTx> tx;
     try
     {
         tx.emplace(make_sttx(boost::trim_copy(data)));
@@ -180,7 +180,7 @@ doSingleSign(std::string const& data,
     boost::filesystem::path const& keyFile)
 {
     return doSign(data, keyFile,
-        [](offline::RippleKey const& key, boost::optional<ripple::STTx>& tx)
+        [](offline::RippleKey const& key, std::optional<ripple::STTx>& tx)
         {
             key.singleSign(tx);
         });
@@ -191,7 +191,7 @@ doMultiSign(std::string const& data,
     boost::filesystem::path const& keyFile)
 {
     return doSign(data, keyFile,
-        [](offline::RippleKey const& key, boost::optional<ripple::STTx>& tx)
+        [](offline::RippleKey const& key, std::optional<ripple::STTx>& tx)
         {
             key.multiSign(tx);
         });
@@ -199,8 +199,8 @@ doMultiSign(std::string const& data,
 
 int
 doCreateKeyfile(boost::filesystem::path const& keyFile,
-    boost::optional<std::string> const& keytype,
-    boost::optional<std::string> const& seed)
+    std::optional<std::string> const& keytype,
+    std::optional<std::string> const& seed)
 {
     using namespace ripple;
     using namespace offline;
@@ -212,7 +212,7 @@ doCreateKeyfile(boost::filesystem::path const& keyFile,
 
     auto const kt = keytype ?
         keyTypeFromString(*keytype) :
-        boost::none;
+        std::nullopt;
     if (keytype && !kt)
     {
         std::cerr << "Invalid key type: \"" << *keytype << "\"" <<
@@ -246,7 +246,7 @@ int
 runCommand (const std::string& command,
     std::vector <std::string> const& args,
     boost::filesystem::path const& keyFile,
-    boost::optional<std::string> const& keyType,
+    std::optional<std::string> const& keyType,
     InputType const& inputType)
 {
     using namespace std;
@@ -254,9 +254,9 @@ runCommand (const std::string& command,
     struct commandParams
     {
         bool const allowNoInput;
-        std::function<int(boost::optional<std::string> const& input,
+        std::function<int(std::optional<std::string> const& input,
             boost::filesystem::path const& keyFile,
-            boost::optional<std::string> const& keyType)> const action;
+            std::optional<std::string> const& keyType)> const action;
     };
     /* TODO: VC compiler doesn't like
             std::function<void(std::string const& input)> const action;
@@ -310,7 +310,7 @@ runCommand (const std::string& command,
         throw std::runtime_error("Unknown command: " + command);
 
     // getInputType has already resolved conflicts
-    boost::optional<std::string> input;
+    std::optional<std::string> input;
     switch (inputType)
     {
     case InputType::readstdin:
@@ -510,8 +510,8 @@ int main (int argc, char** argv)
             vm["keyfile"].as<std::string>() :
             defaultKeyfile;
         auto const keyType = vm.count("keytype") ?
-            boost::optional<std::string>(vm["keytype"].as<std::string>()) :
-            boost::none;
+            std::optional<std::string>(vm["keytype"].as<std::string>()) :
+            std::nullopt;
         auto const inputType = getInputType(vm);
 
         return runCommand(

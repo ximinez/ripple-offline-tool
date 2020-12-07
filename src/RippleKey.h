@@ -67,8 +67,8 @@ public:
     */
     static
     RippleKey
-    make_RippleKey(boost::optional<ripple::KeyType> const& keyType,
-        boost::optional<std::string> const& rawseed);
+    make_RippleKey(std::optional<ripple::KeyType> const& keyType,
+        std::optional<std::string> const& rawseed);
 
     /** Returns RippleKey constructed from JSON file
 
@@ -98,14 +98,14 @@ public:
         @param tx Transaction to single sign
     */
     void
-    singleSign(boost::optional<ripple::STTx>& tx) const;
+    singleSign(std::optional<ripple::STTx>& tx) const;
 
     /** Add a signer to the transaction with the key
 
         @param tx Transaction to multi sign
     */
     void
-    multiSign(boost::optional<ripple::STTx>& tx) const;
+    multiSign(std::optional<ripple::STTx>& tx) const;
 
     /// KeyType of this key
     ripple::KeyType const&

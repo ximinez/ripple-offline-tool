@@ -222,10 +222,10 @@ private:
         if (!BEAST_EXPECT(obj))
             return;
 
-        boost::optional<ripple::STTx> tx {std::move(*obj)};
+        std::optional<ripple::STTx> tx {std::move(*obj)};
         // The hard-coded version is signed
         auto check = tx->checkSign(STTx::RequireFullyCanonicalSig::yes);
-        BEAST_EXPECT(check.first);
+        BEAST_EXPECT(check);
         {
             auto const key = RippleKey::make_RippleKey(kt,
                 std::string("alice"));
@@ -243,13 +243,12 @@ private:
             tx->makeFieldAbsent(sfTxnSignature);
             tx->setAccountID(sfAccount, calcAccountID(key.publicKey()));
             check = tx->checkSign(STTx::RequireFullyCanonicalSig::yes);
-            BEAST_EXPECT(!check.first);
-            BEAST_EXPECT(check.second == "Invalid signature.");
+            BEAST_EXPECT(!check);
+            BEAST_EXPECT(check.error() == "Invalid signature.");
 
             // Now re-sign it
             key.singleSign(tx);
-            BEAST_EXPECT(tx->checkSign(
-                STTx::RequireFullyCanonicalSig::yes).first);
+            BEAST_EXPECT(tx->checkSign(STTx::RequireFullyCanonicalSig::yes));
             // Same signature
             BEAST_EXPECT(tx->getFieldVL(sfSigningPubKey) == expectedSigningKey);
             BEAST_EXPECT(tx->getFieldVL(sfTxnSignature) == expectedSignature);
@@ -263,8 +262,7 @@ private:
 
             // Now multisign it with the test key
             key.multiSign(tx);
-            BEAST_EXPECT(tx->checkSign(
-                STTx::RequireFullyCanonicalSig::yes).first);
+            BEAST_EXPECT(tx->checkSign(STTx::RequireFullyCanonicalSig::yes));
             // No single signature
             BEAST_EXPECT(!tx->isFieldPresent(sfTxnSignature));
             BEAST_EXPECT(tx->getFieldVL(sfSigningPubKey).empty());
@@ -308,8 +306,7 @@ private:
             auto const key2 = RippleKey::make_RippleKey(kt,
                 passphrase);
             key2.multiSign(tx);
-            BEAST_EXPECT(tx->checkSign(
-                STTx::RequireFullyCanonicalSig::yes).first);
+            BEAST_EXPECT(tx->checkSign(STTx::RequireFullyCanonicalSig::yes));
             // No single signature
             BEAST_EXPECT(!tx->isFieldPresent(sfTxnSignature));
             BEAST_EXPECT(tx->getFieldVL(sfSigningPubKey).empty());
@@ -362,7 +359,7 @@ private:
         using namespace std::string_literals;
 
         RippleKey key;
-        boost::optional<ripple::STTx> tx;
+        std::optional<ripple::STTx> tx;
         try
         {
             key.singleSign(tx);

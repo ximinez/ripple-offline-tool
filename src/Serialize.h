@@ -21,6 +21,7 @@
 #include <ripple/protocol/KeyType.h>
 #include <ripple/protocol/SecretKey.h>
 #include <ripple/protocol/st.h>
+#include <optional>
 
 namespace boost
 {
@@ -35,13 +36,13 @@ namespace offline {
 Json::Value
 parseJson(std::string const& json);
 
-boost::optional<ripple::STObject>
+std::optional<ripple::STObject>
 makeObject(Json::Value const& json);
 
 std::string
 serialize(ripple::STObject const& tx);
 
-boost::optional<ripple::STObject>
+std::optional<ripple::STObject>
 deserialize(std::string const& blob);
 
 ripple::STTx

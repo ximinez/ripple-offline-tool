@@ -42,7 +42,7 @@ parseJson(std::string const& raw)
     return jv;
 }
 
-boost::optional<ripple::STObject>
+std::optional<ripple::STObject>
 makeObject(Json::Value const& json)
 {
     using namespace ripple;
@@ -60,7 +60,7 @@ serialize(ripple::STObject const& object)
     return strHex(object.getSerializer().peekData());
 }
 
-boost::optional<ripple::STObject>
+std::optional<ripple::STObject>
 deserialize(std::string const& blob)
 {
     using namespace ripple;
@@ -78,7 +78,7 @@ deserialize(std::string const& blob)
 ripple::STTx
 make_sttx(std::string const& data)
 {
-    boost::optional<ripple::STObject> obj;
+    std::optional<ripple::STObject> obj;
     try
     {
         obj = deserialize(data);
