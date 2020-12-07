@@ -129,7 +129,7 @@ const& getKnownMetadata()
                     "NewFields" : {
                         "Account" : "rH3uSRUJYoJhK4kL9x1mzUhDimKE2n3oT6",
                         "BookDirectory" : "BC05A0B94DB6C7C0B2D9E04573F0463DC15DB8033ABA85624D0CE3BAC8E0468B",
-                        "OwnerNode" : "00000000000000FB",
+                        "OwnerNode" : "fb",
                         "Sequence" : 4330215,
                         "TakerGets" : "80000000000",
                         "TakerPays" : {
@@ -145,9 +145,9 @@ const& getKnownMetadata()
                     "FinalFields" : {
                         "Account" : "rH3uSRUJYoJhK4kL9x1mzUhDimKE2n3oT6",
                         "BookDirectory" : "BC05A0B94DB6C7C0B2D9E04573F0463DC15DB8033ABA85624D0CE3CBADF66AFE",
-                        "BookNode" : "0000000000000000",
+                        "BookNode" : "0",
                         "Flags" : 0,
-                        "OwnerNode" : "00000000000000FB",
+                        "OwnerNode" : "fb",
                         "PreviousTxnID" : "70F1E60F21B2A49ECBFE2D19E2867E28D7C8F210E111A58F1C68541F71FBCFE3",
                         "PreviousTxnLgrSeq" : 28812537,
                         "Sequence" : 4330209,
@@ -185,7 +185,7 @@ const& getKnownMetadata()
                 "ModifiedNode" : {
                     "FinalFields" : {
                         "Flags" : 0,
-                        "IndexPrevious" : "0000000000000000",
+                        "IndexPrevious" : "0",
                         "Owner" : "rH3uSRUJYoJhK4kL9x1mzUhDimKE2n3oT6",
                         "RootIndex" : "FF060B902D93027D3C91161AB9534D1144ABAA309C2FD848783F5A3B9A11A80C"
                     },
@@ -196,7 +196,7 @@ const& getKnownMetadata()
                 {
                 "ModifiedNode" : {
                     "FinalFields" : {
-                        "ExchangeRate" : "4D0CE3BAC8E0468B",
+                        "ExchangeRate" : "4d0ce3bac8e0468b",
                         "Flags" : 0,
                         "RootIndex" : "BC05A0B94DB6C7C0B2D9E04573F0463DC15DB8033ABA85624D0CE3BAC8E0468B",
                         "TakerGetsCurrency" : "0000000000000000000000000000000000000000",
@@ -211,7 +211,7 @@ const& getKnownMetadata()
                 {
                 "DeletedNode" : {
                     "FinalFields" : {
-                        "ExchangeRate" : "4D0CE3CBADF66AFE",
+                        "ExchangeRate" : "4d0ce3cbadf66afe",
                         "Flags" : 0,
                         "RootIndex" : "BC05A0B94DB6C7C0B2D9E04573F0463DC15DB8033ABA85624D0CE3CBADF66AFE",
                         "TakerGetsCurrency" : "0000000000000000000000000000000000000000",

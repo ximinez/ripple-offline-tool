@@ -32,3 +32,4 @@
 build
 .nih_c
 .vs
+CMakeSettings.json
