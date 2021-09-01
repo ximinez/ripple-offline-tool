@@ -18,11 +18,13 @@
 */
 //==============================================================================
 
+#include <test/KeyFileGuard.h>
+#include <test/KnownTestData.h>
+
 #include <OfflineTool.h>
 #include <RippleKey.h>
 #include <Serialize.h>
-#include <test/KnownTestData.h>
-#include <test/KeyFileGuard.h>
+
 #include <ripple/beast/unit_test.h>
 #include <ripple/protocol/SecretKey.h>
 #include <boost/format.hpp>
@@ -35,7 +37,6 @@ namespace test {
 class OfflineTool_test : public beast::unit_test::suite
 {
 private:
-
     // Allow cout and cerr to be redirected to a buffer.
     // Destructor restores old cout and cerr streambufs.
     class CoutRedirect
@@ -53,12 +54,14 @@ private:
             std::cerr.rdbuf(oldErr_);
         }
 
-        std::string out() const
+        std::string
+        out() const
         {
             return captureOut.str();
         }
 
-        std::string err() const
+        std::string
+        err() const
         {
             return captureErr.str();
         }
@@ -93,27 +96,28 @@ private:
     {
         testcase("Serialize");
 
-        auto test = [&](TestItem const& testItem)
-        {
+        auto test = [&](TestItem const& testItem) {
             {
                 CoutRedirect coutRedirect;
 
                 auto const exit = doSerialize(testItem.JsonText);
 
                 BEAST_EXPECT(exit == EXIT_SUCCESS);
-                BEAST_EXPECT(coutRedirect.out() == testItem.SerializedText + "\n");
+                BEAST_EXPECT(
+                    coutRedirect.out() == testItem.SerializedText + "\n");
                 BEAST_EXPECTS(coutRedirect.err().empty(), coutRedirect.err());
             }
             {
                 std::stringstream jsoninput(testItem.JsonText);
-                CInRedirect cinRedirect{ jsoninput };
+                CInRedirect cinRedirect{jsoninput};
                 CoutRedirect coutRedirect;
 
-                auto const exit = runCommand("serialize", {}, {}, {},
-                    InputType::readstdin);
+                auto const exit =
+                    runCommand("serialize", {}, {}, {}, InputType::readstdin);
 
                 BEAST_EXPECT(exit == EXIT_SUCCESS);
-                BEAST_EXPECT(coutRedirect.out() == testItem.SerializedText + "\n");
+                BEAST_EXPECT(
+                    coutRedirect.out() == testItem.SerializedText + "\n");
                 BEAST_EXPECTS(coutRedirect.err().empty(), coutRedirect.err());
             }
         };
@@ -129,10 +133,10 @@ private:
 
             BEAST_EXPECT(exit == EXIT_FAILURE);
             BEAST_EXPECT(coutRedirect.out().empty());
-            BEAST_EXPECT(coutRedirect.err() ==
+            BEAST_EXPECT(
+                coutRedirect.err() ==
                 "Unable to serialize \"Hello, world!\"\n");
         };
-
     }
 
     void
@@ -140,60 +144,65 @@ private:
     {
         testcase("Deserialize");
 
-        auto test = [&](TestItem const& testItem,
-            std::function<std::string(std::string)> modifySerialized = nullptr,
-            std::function<void(Json::Value&)> modifyKnownJson = nullptr)
-        {
-            {
-                CoutRedirect coutRedirect;
-
-                try
+        auto test =
+            [&](TestItem const& testItem,
+                std::function<std::string(std::string)> modifySerialized =
+                    nullptr,
+                std::function<void(Json::Value&)> modifyKnownJson = nullptr) {
                 {
-                    auto const exit = doDeserialize(modifySerialized ?
-                        modifySerialized(testItem.SerializedText) :
-                        testItem.SerializedText);
+                    CoutRedirect coutRedirect;
+
+                    try
+                    {
+                        auto const exit = doDeserialize(
+                            modifySerialized
+                                ? modifySerialized(testItem.SerializedText)
+                                : testItem.SerializedText);
+                        BEAST_EXPECT(exit == EXIT_SUCCESS);
+                    }
+                    catch (...)
+                    {
+                        fail();
+                    }
+
+                    BEAST_EXPECTS(
+                        coutRedirect.err().empty(), coutRedirect.err());
+                    auto const captured = parseJson(coutRedirect.out());
+                    auto known = parseJson(testItem.JsonText);
+                    if (modifyKnownJson)
+                        modifyKnownJson(known);
+                    BEAST_EXPECT(captured == known);
+                }
+                {
+                    std::stringstream serinput(
+                        modifySerialized
+                            ? modifySerialized(testItem.SerializedText)
+                            : testItem.SerializedText);
+                    CInRedirect cinRedirect{serinput};
+
+                    CoutRedirect coutRedirect;
+
+                    auto const exit = runCommand(
+                        "deserialize", {}, {}, {}, InputType::readstdin);
+
                     BEAST_EXPECT(exit == EXIT_SUCCESS);
+                    BEAST_EXPECTS(
+                        coutRedirect.err().empty(), coutRedirect.err());
+                    auto const captured = parseJson(coutRedirect.out());
+                    auto known = parseJson(testItem.JsonText);
+                    if (modifyKnownJson)
+                        modifyKnownJson(known);
+                    BEAST_EXPECT(captured == known);
                 }
-                catch (...)
-                {
-                    fail();
-                }
-
-                BEAST_EXPECTS(coutRedirect.err().empty(), coutRedirect.err());
-                auto const captured = parseJson(coutRedirect.out());
-                auto known = parseJson(testItem.JsonText);
-                if (modifyKnownJson)
-                    modifyKnownJson(known);
-                BEAST_EXPECT(captured == known);
-            }
-            {
-                std::stringstream serinput(modifySerialized ?
-                    modifySerialized(testItem.SerializedText) :
-                    testItem.SerializedText);
-                CInRedirect cinRedirect{ serinput };
-
-                CoutRedirect coutRedirect;
-
-                auto const exit = runCommand("deserialize", {}, {}, {}, InputType::readstdin);
-
-                BEAST_EXPECT(exit == EXIT_SUCCESS);
-                BEAST_EXPECTS(coutRedirect.err().empty(), coutRedirect.err());
-                auto const captured = parseJson(coutRedirect.out());
-                auto known = parseJson(testItem.JsonText);
-                if (modifyKnownJson)
-                    modifyKnownJson(known);
-                BEAST_EXPECT(captured == known);
-            }
-        };
-        test(getKnownTxSigned(),
-            [](auto serialized)
-            {
+            };
+        test(
+            getKnownTxSigned(),
+            [](auto serialized) {
                 // include some extra whitespace, since deserialization
                 // is sensitive to that.
                 return "  " + serialized + "\n\n";
             },
-            [](auto& known)
-            {
+            [](auto& known) {
                 // The hash field is STTx-specific (and computed),
                 // so it won't be in the generic output.
                 known.removeMember("hash");
@@ -208,7 +217,8 @@ private:
 
             BEAST_EXPECT(exit == EXIT_FAILURE);
             BEAST_EXPECTS(coutRedirect.out().empty(), coutRedirect.out());
-            BEAST_EXPECT(coutRedirect.err() ==
+            BEAST_EXPECT(
+                coutRedirect.err() ==
                 "Unable to deserialize \"Hello, world!\"\n"
                 "Is this valid serialized data?\n");
         }
@@ -221,10 +231,12 @@ private:
 
             BEAST_EXPECT(exit == EXIT_FAILURE);
             BEAST_EXPECTS(coutRedirect.out().empty(), coutRedirect.out());
-            BEAST_EXPECT(coutRedirect.err() ==
-                "Unable to deserialize \"" + shortTx + "\"\n"
-                "Is this valid serialized data?\n"
-                "\tDetail: invalid SerialIter getBitString\n");
+            BEAST_EXPECT(
+                coutRedirect.err() ==
+                "Unable to deserialize \"" + shortTx +
+                    "\"\n"
+                    "Is this valid serialized data?\n"
+                    "\tDetail: invalid SerialIter getBitString\n");
         }
     }
 
@@ -247,12 +259,10 @@ private:
         auto const& knownTx = getKnownTxSigned();
         auto const origTx = offline::deserialize(knownTx.SerializedText);
 
-        auto test = [&](std::string const& testData)
-        {
+        auto test = [&](std::string const& testData) {
             using namespace ripple;
 
-            auto go = [&](std::string const& json)
-            {
+            auto go = [&](std::string const& json) {
                 auto const tx = make_sttx(json);
                 BEAST_EXPECT(tx.checkSign(STTx::RequireFullyCanonicalSig::yes));
                 BEAST_EXPECT(tx[sfSigningPubKey] != (*origTx)[sfSigningPubKey]);
@@ -278,11 +288,11 @@ private:
             }
             {
                 std::stringstream serinput(testData);
-                CInRedirect cinRedirect{ serinput };
+                CInRedirect cinRedirect{serinput};
                 CoutRedirect coutRedirect;
 
-                auto const exit = runCommand("sign", {}, keyFile, {},
-                    InputType::readstdin);
+                auto const exit =
+                    runCommand("sign", {}, keyFile, {}, InputType::readstdin);
 
                 BEAST_EXPECT(exit == EXIT_SUCCESS);
                 BEAST_EXPECTS(coutRedirect.err().empty(), coutRedirect.err());
@@ -302,7 +312,8 @@ private:
 
             BEAST_EXPECT(exit == EXIT_FAILURE);
             BEAST_EXPECTS(coutRedirect.out().empty(), coutRedirect.out());
-            BEAST_EXPECT(coutRedirect.err() ==
+            BEAST_EXPECT(
+                coutRedirect.err() ==
                 "Unable to sign \"Hello, world!\"\n"
                 "Detail: invalid JSON\n");
         }
@@ -315,9 +326,12 @@ private:
 
             BEAST_EXPECT(exit == EXIT_FAILURE);
             BEAST_EXPECTS(coutRedirect.out().empty(), coutRedirect.out());
-            BEAST_EXPECT(coutRedirect.err() ==
-                "Unable to sign \"" + shortTx + "\"\n"
-                "Detail: unable to deserialize (internal: invalid SerialIter getBitString)\n");
+            BEAST_EXPECT(
+                coutRedirect.err() ==
+                "Unable to sign \"" + shortTx +
+                    "\"\n"
+                    "Detail: unable to deserialize (internal: invalid "
+                    "SerialIter getBitString)\n");
         }
         {
             CoutRedirect coutRedirect;
@@ -331,9 +345,11 @@ private:
 
             BEAST_EXPECT(exit == EXIT_FAILURE);
             BEAST_EXPECTS(coutRedirect.out().empty(), coutRedirect.out());
-            BEAST_EXPECTS(coutRedirect.err() ==
-                "Unable to sign \"" + shortTx + "\"\n"
-                "Detail: Field 'Sequence' is required but missing.\n",
+            BEAST_EXPECTS(
+                coutRedirect.err() ==
+                    "Unable to sign \"" + shortTx +
+                        "\"\n"
+                        "Detail: Field 'Sequence' is required but missing.\n",
                 coutRedirect.err() + "\n\n" + shortTx);
         }
         {
@@ -341,15 +357,16 @@ private:
 
             // Use an invalid key file
             auto const badKeyFile = subdir / "invalid.txt";
-            auto const exit = doSingleSign(knownTx.SerializedText,
-                badKeyFile);
+            auto const exit = doSingleSign(knownTx.SerializedText, badKeyFile);
 
             BEAST_EXPECT(exit == EXIT_FAILURE);
             BEAST_EXPECTS(coutRedirect.out().empty(), coutRedirect.out());
-            BEAST_EXPECT(coutRedirect.err() ==
-                "Unable to sign \"" + knownTx.SerializedText + "\"\n"
-                "Reason: Failed to open key file: " +
-                badKeyFile.string() + "\n");
+            BEAST_EXPECT(
+                coutRedirect.err() ==
+                "Unable to sign \"" + knownTx.SerializedText +
+                    "\"\n"
+                    "Reason: Failed to open key file: " +
+                    badKeyFile.string() + "\n");
         }
     }
 
@@ -369,8 +386,7 @@ private:
             key.writeToFile(keyFile);
         }
 
-        auto test = [&](std::string const& testData)
-        {
+        auto test = [&](std::string const& testData) {
             using namespace ripple;
             {
                 CoutRedirect coutRedirect;
@@ -380,7 +396,8 @@ private:
                     auto const exit = doMultiSign(testData, keyFile);
 
                     BEAST_EXPECT(exit == EXIT_SUCCESS);
-                    BEAST_EXPECTS(coutRedirect.err().empty(), coutRedirect.err());
+                    BEAST_EXPECTS(
+                        coutRedirect.err().empty(), coutRedirect.err());
                     auto const tx = make_sttx(coutRedirect.out());
                     BEAST_EXPECT(
                         tx.checkSign(STTx::RequireFullyCanonicalSig::yes));
@@ -396,11 +413,11 @@ private:
             }
             {
                 std::stringstream serinput(testData);
-                CInRedirect cinRedirect{ serinput };
+                CInRedirect cinRedirect{serinput};
                 CoutRedirect coutRedirect;
 
-                auto const exit = runCommand("multisign", {}, keyFile, {},
-                    InputType::readstdin);
+                auto const exit = runCommand(
+                    "multisign", {}, keyFile, {}, InputType::readstdin);
 
                 BEAST_EXPECT(exit == EXIT_SUCCESS);
                 BEAST_EXPECTS(coutRedirect.err().empty(), coutRedirect.err());
@@ -426,7 +443,8 @@ private:
 
             BEAST_EXPECT(exit == EXIT_FAILURE);
             BEAST_EXPECTS(coutRedirect.out().empty(), coutRedirect.out());
-            BEAST_EXPECT(coutRedirect.err() ==
+            BEAST_EXPECT(
+                coutRedirect.err() ==
                 "Unable to sign \"Hello, world!\"\n"
                 "Detail: invalid JSON\n");
         }
@@ -439,9 +457,12 @@ private:
 
             BEAST_EXPECT(exit == EXIT_FAILURE);
             BEAST_EXPECTS(coutRedirect.out().empty(), coutRedirect.out());
-            BEAST_EXPECT(coutRedirect.err() ==
-                "Unable to sign \"" + shortTx + "\"\n"
-                "Detail: unable to deserialize (internal: invalid SerialIter getBitString)\n");
+            BEAST_EXPECT(
+                coutRedirect.err() ==
+                "Unable to sign \"" + shortTx +
+                    "\"\n"
+                    "Detail: unable to deserialize (internal: invalid "
+                    "SerialIter getBitString)\n");
         }
         {
             CoutRedirect coutRedirect;
@@ -455,9 +476,11 @@ private:
 
             BEAST_EXPECT(exit == EXIT_FAILURE);
             BEAST_EXPECTS(coutRedirect.out().empty(), coutRedirect.out());
-            BEAST_EXPECTS(coutRedirect.err() ==
-                "Unable to sign \"" + shortTx + "\"\n"
-                "Detail: Field 'Sequence' is required but missing.\n",
+            BEAST_EXPECTS(
+                coutRedirect.err() ==
+                    "Unable to sign \"" + shortTx +
+                        "\"\n"
+                        "Detail: Field 'Sequence' is required but missing.\n",
                 coutRedirect.err() + "\n\n" + shortTx);
         }
         {
@@ -465,19 +488,22 @@ private:
 
             // Use an invalid key file
             auto const badKeyFile = subdir / "invalid.txt";
-            auto const exit = doMultiSign(knownTxUnsigned.SerializedText,
-                badKeyFile);
+            auto const exit =
+                doMultiSign(knownTxUnsigned.SerializedText, badKeyFile);
 
             BEAST_EXPECT(exit == EXIT_FAILURE);
             BEAST_EXPECTS(coutRedirect.out().empty(), coutRedirect.out());
-            BEAST_EXPECT(coutRedirect.err() ==
-                "Unable to sign \"" + knownTxUnsigned.SerializedText + "\"\n"
-                "Reason: Failed to open key file: " +
-                badKeyFile.string() + "\n");
+            BEAST_EXPECT(
+                coutRedirect.err() ==
+                "Unable to sign \"" + knownTxUnsigned.SerializedText +
+                    "\"\n"
+                    "Reason: Failed to open key file: " +
+                    badKeyFile.string() + "\n");
         }
     }
 
-    void testCreateKeyfile()
+    void
+    testCreateKeyfile()
     {
         testcase("Create keyfile");
 
@@ -489,10 +515,8 @@ private:
         path const keyFile = subdir / ".ripple" / "secret-key.txt";
 
         auto test = [&](std::optional<std::string> const& kt,
-            std::optional<std::string> const& seed)
-        {
-            auto const go = [&](bool useCommand)
-            {
+                        std::optional<std::string> const& seed) {
+            auto const go = [&](bool useCommand) {
                 CoutRedirect coutRedirect;
 
                 if (useCommand)
@@ -504,8 +528,8 @@ private:
                         args.push_back(*seed);
                         inputType = InputType::commandline;
                     }
-                    auto const exit = runCommand("createkeyfile", args,
-                        keyFile, kt, inputType);
+                    auto const exit = runCommand(
+                        "createkeyfile", args, keyFile, kt, inputType);
                     BEAST_EXPECT(exit == EXIT_SUCCESS);
                 }
                 else
@@ -518,11 +542,11 @@ private:
 
                 auto const known = boost::str(
                     boost::format("New ripple key created in %s\n"
-                    "Key type is %s, and account ID is %s\n"
-                    "\nThis file should be stored securely and not shared\n\n")
-                    % keyFile.string()
-                    % to_string(key.keyType())
-                    % toBase58(calcAccountID(key.publicKey())));
+                                  "Key type is %s, and account ID is %s\n"
+                                  "\nThis file should be stored securely and "
+                                  "not shared\n\n") %
+                    keyFile.string() % to_string(key.keyType()) %
+                    toBase58(calcAccountID(key.publicKey())));
 
                 // Test that the function will not overwrite
                 try
@@ -535,9 +559,11 @@ private:
                 }
                 catch (std::exception const& e)
                 {
-                    BEAST_EXPECT(e.what() ==
-                        std::string{ "Refusing to overwrite existing key file: " +
-                        keyFile.string()});
+                    BEAST_EXPECT(
+                        e.what() ==
+                        std::string{
+                            "Refusing to overwrite existing key file: " +
+                            keyFile.string()});
                 }
 
                 remove(keyFile);
@@ -550,36 +576,35 @@ private:
         };
 
         test(std::nullopt, std::nullopt);
-        test(std::nullopt, std::string{ "masterpassphrase" });
+        test(std::nullopt, std::string{"masterpassphrase"});
         test(std::string(to_string(KeyType::ed25519)), std::nullopt);
-        test(std::string(to_string(KeyType::secp256k1)),
-            std::string{ "alice" });
+        test(std::string(to_string(KeyType::secp256k1)), std::string{"alice"});
 
         // edge cases
         {
             // invalid keytype
             CoutRedirect coutRedirect;
 
-            auto const exit = doCreateKeyfile(keyFile,
-                std::string{ "NSA special" }, std::nullopt);
+            auto const exit = doCreateKeyfile(
+                keyFile, std::string{"NSA special"}, std::nullopt);
 
             BEAST_EXPECT(exit == EXIT_FAILURE);
             BEAST_EXPECT(!exists(keyFile));
             BEAST_EXPECTS(coutRedirect.out().empty(), coutRedirect.out());
-            BEAST_EXPECT(coutRedirect.err() == "Invalid key type: \"NSA special\"\n");
+            BEAST_EXPECT(
+                coutRedirect.err() == "Invalid key type: \"NSA special\"\n");
         }
         {
             // empty seed
             try
             {
-                doCreateKeyfile(keyFile, std::string{ "ed25519" },
-                    std::string{ "" });
+                doCreateKeyfile(
+                    keyFile, std::string{"ed25519"}, std::string{""});
                 fail();
             }
             catch (std::exception const& e)
             {
-                BEAST_EXPECT(e.what() ==
-                    std::string{ "Unable to parse seed: " });
+                BEAST_EXPECT(e.what() == std::string{"Unable to parse seed: "});
             }
 
             BEAST_EXPECT(!exists(keyFile));
@@ -587,9 +612,9 @@ private:
     }
 
     void
-    testRunCommand ()
+    testRunCommand()
     {
-        testcase ("Run Command");
+        testcase("Run Command");
 
         CoutRedirect coutRedirect;
 
@@ -599,18 +624,16 @@ private:
         KeyFileGuard g(*this, subdir);
         path const keyFile = subdir / ".ripple" / "secret-key.txt";
 
-        auto testCommand = [&](
-            std::string const& command,
-            std::vector <std::string> const& args,
-            std::string const& expectedError,
-            int const expectedExit = EXIT_FAILURE)
-        {
+        auto testCommand = [&](std::string const& command,
+                               std::vector<std::string> const& args,
+                               std::string const& expectedError,
+                               int const expectedExit = EXIT_FAILURE) {
             try
             {
-                auto const inputType = args.empty() ? InputType::none :
-                    InputType::commandline;
-                auto const exit = runCommand(command, args, keyFile, {},
-                    inputType);
+                auto const inputType =
+                    args.empty() ? InputType::none : InputType::commandline;
+                auto const exit =
+                    runCommand(command, args, keyFile, {}, inputType);
                 BEAST_EXPECT(exit == expectedExit);
                 BEAST_EXPECT(expectedError.empty());
             }
@@ -621,11 +644,11 @@ private:
         };
 
         std::stringstream emptyinput;
-        CInRedirect cinRedirect{ emptyinput };
+        CInRedirect cinRedirect{emptyinput};
 
-        std::vector <std::string> const noArgs;
-        std::vector <std::string> const oneArg = { "some data" };
-        std::vector <std::string> const twoArgs = { "data", "more data" };
+        std::vector<std::string> const noArgs;
+        std::vector<std::string> const oneArg = {"some data"};
+        std::vector<std::string> const twoArgs = {"data", "more data"};
         std::string const noError = "";
         std::string const argError = "Syntax error: Wrong number of arguments";
         {
@@ -680,12 +703,12 @@ public:
         testSingleSign();
         testMultiSign();
         testCreateKeyfile();
-        testRunCommand ();
+        testRunCommand();
     }
 };
 
 BEAST_DEFINE_TESTSUITE(OfflineTool, keys, serialize);
 
-} // test
+}  // namespace test
 
-} // serialize
+}  // namespace offline

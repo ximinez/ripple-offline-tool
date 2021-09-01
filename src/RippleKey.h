@@ -20,13 +20,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include <ripple/protocol/st.h>
 
-namespace boost
-{
-namespace filesystem
-{
+namespace boost {
+namespace filesystem {
 class path;
 }
-}
+}  // namespace boost
 
 namespace offline {
 
@@ -43,19 +41,16 @@ private:
     ripple::SecretKey secretKey_;
 
 public:
-    RippleKey()
-        : RippleKey(RippleKey::defaultKeyType())
-    {}
+    RippleKey() : RippleKey(RippleKey::defaultKeyType())
+    {
+    }
 
-    explicit
-    RippleKey(ripple::KeyType const& keyType)
+    explicit RippleKey(ripple::KeyType const& keyType)
         : RippleKey(keyType, ripple::randomSeed())
-    {}
+    {
+    }
 
-
-    RippleKey(
-        ripple::KeyType const& keyType,
-        ripple::Seed const& seed);
+    RippleKey(ripple::KeyType const& keyType, ripple::Seed const& seed);
 
     /** Attempt to construct RippleKey with variable parameters
 
@@ -65,9 +60,9 @@ public:
         @throws std::runtime_error if the `rawseed` is set and cannot
             be parsed into a `Seed`
     */
-    static
-    RippleKey
-    make_RippleKey(std::optional<ripple::KeyType> const& keyType,
+    static RippleKey
+    make_RippleKey(
+        std::optional<ripple::KeyType> const& keyType,
         std::optional<std::string> const& rawseed);
 
     /** Returns RippleKey constructed from JSON file
@@ -76,10 +71,8 @@ public:
 
         @throws std::runtime_error if file content is invalid
     */
-    static
-    RippleKey
-    make_RippleKey(
-        boost::filesystem::path const& keyFile);
+    static RippleKey
+    make_RippleKey(boost::filesystem::path const& keyFile);
 
     /** Write key to JSON file
 
@@ -91,7 +84,7 @@ public:
             or write to the file.
     */
     void
-    writeToFile (boost::filesystem::path const& keyFile) const;
+    writeToFile(boost::filesystem::path const& keyFile) const;
 
     /** Signs a transaction with the key
 
@@ -116,9 +109,9 @@ public:
 
     /// PublicKey of this key
     ripple::PublicKey const&
-    publicKey () const
+    publicKey() const
     {
         return publicKey_;
     }
 };
-} // serialize
+}  // namespace offline

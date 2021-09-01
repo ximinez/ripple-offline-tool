@@ -18,10 +18,12 @@
 */
 //==============================================================================
 
-#include <Serialize.h>
-#include <RippleKey.h>
-#include <test/KnownTestData.h>
 #include <test/KeyFileGuard.h>
+#include <test/KnownTestData.h>
+
+#include <RippleKey.h>
+#include <Serialize.h>
+
 #include <ripple/basics/base64.h>
 #include <ripple/beast/unit_test.h>
 #include <ripple/protocol/HashPrefix.h>
@@ -35,47 +37,55 @@ namespace test {
 class Serialize_test : public beast::unit_test::suite
 {
 private:
-    void verifyKnownTx(ripple::STTx const& obj)
+    void
+    verifyKnownTx(ripple::STTx const& obj)
     {
         using namespace ripple;
-        BEAST_EXPECT(to_string(obj.getTransactionID()) ==
+        BEAST_EXPECT(
+            to_string(obj.getTransactionID()) ==
             "F2D008D2AABBABD2A882F9049AA873210908EC3EA1EB0A2044A66093C7ACD2B1");
         BEAST_EXPECT(obj[sfTransactionType] == ttPAYMENT);
         BEAST_EXPECT(obj[sfFlags] == tfFullyCanonicalSig);
-        BEAST_EXPECT(toBase58(obj[sfAccount]) ==
-            "rG1QQv2nh2gr7RCZ1P8YYcBUKCCN633jCn");
+        BEAST_EXPECT(
+            toBase58(obj[sfAccount]) == "rG1QQv2nh2gr7RCZ1P8YYcBUKCCN633jCn");
         BEAST_EXPECT(obj[sfSequence] == 18);
         BEAST_EXPECT(obj[sfFee] == STAmount(100));
-        BEAST_EXPECT(strHex(obj[sfSigningPubKey]) ==
-            "0388935426E0D08083314842EDFBB2D517BD47699F9A4527318A8E10468C97C052");
-        BEAST_EXPECT(strHex(obj[sfTxnSignature]) ==
+        BEAST_EXPECT(
+            strHex(obj[sfSigningPubKey]) ==
+            "0388935426E0D08083314842EDFBB2D517BD47699F9A4527318A8E10468C97C05"
+            "2");
+        BEAST_EXPECT(
+            strHex(obj[sfTxnSignature]) ==
             "3044022030425DB6A46B5B57BDA85E5B8455B90DC4EC57BA1A707AF0C"
             "28DC9383E09643D0220195B9FDBE383B813A539F3B70E130482E92D1E"
             "1210B0F85551E11B3F81EB98BB");
-        BEAST_EXPECT(toBase58(obj[sfDestination]) ==
+        BEAST_EXPECT(
+            toBase58(obj[sfDestination]) ==
             "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh");
-        auto const amountAccount = parseBase58<AccountID>(
-            "rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq");
+        auto const amountAccount =
+            parseBase58<AccountID>("rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq");
         if (BEAST_EXPECT(amountAccount))
         {
-            BEAST_EXPECT(obj[sfAmount] == STAmount(
-                Issue(to_currency("USD"), *amountAccount),
-                    123400000));
+            BEAST_EXPECT(
+                obj[sfAmount] ==
+                STAmount(Issue(to_currency("USD"), *amountAccount), 123400000));
         }
-        auto const sendMaxAccount = parseBase58<AccountID>(
-            "razqQKzJRdB4UxFPWf5NEpEG3WMkmwgcXA");
+        auto const sendMaxAccount =
+            parseBase58<AccountID>("razqQKzJRdB4UxFPWf5NEpEG3WMkmwgcXA");
         if (BEAST_EXPECT(sendMaxAccount))
         {
             // Need a variable here instead of a literal to make
             // some compilers happy
             const std::uint64_t mantissa = 5678900000000000LLU;
-            BEAST_EXPECT(obj[sfSendMax] == STAmount(
-                Issue(to_currency("CNY"), *sendMaxAccount),
-                mantissa, -4));
+            BEAST_EXPECT(
+                obj[sfSendMax] ==
+                STAmount(
+                    Issue(to_currency("CNY"), *sendMaxAccount), mantissa, -4));
         }
     }
 
-    void testParseJson()
+    void
+    testParseJson()
     {
         testcase("ParseJson");
 
@@ -83,13 +93,14 @@ private:
         auto json = parseJson(testTx.JsonText);
         BEAST_EXPECT(json);
 
-        // Don't need to test the `JsonReader`, just a case to ensure the wrapper
-        // handles failures
+        // Don't need to test the `JsonReader`, just a case to ensure the
+        // wrapper handles failures
         json = parseJson("{ asjlfkjs");
         BEAST_EXPECT(!json);
     }
 
-    void testMakeObject()
+    void
+    testMakeObject()
     {
         testcase("Make Object");
 
@@ -98,17 +109,17 @@ private:
         auto obj = makeObject(json);
         if (BEAST_EXPECT(obj))
         {
-            ripple::STTx tx{ std::move(*obj) };
+            ripple::STTx tx{std::move(*obj)};
             verifyKnownTx(tx);
         }
     }
 
-    void testSerialize()
+    void
+    testSerialize()
     {
         testcase("Serialize");
 
-        auto test = [&](TestItem const& testItem)
-        {
+        auto test = [&](TestItem const& testItem) {
             auto const json = parseJson(testItem.JsonText);
             auto const obj = makeObject(json);
             if (BEAST_EXPECT(obj))
@@ -123,41 +134,42 @@ private:
         test(getKnownMetadata());
     }
 
-    void testDeserialize()
+    void
+    testDeserialize()
     {
         testcase("Deserialize");
 
         using namespace ripple;
 
-        auto test = [&](TestItem const& testItem,
-            std::function<bool(ripple::STObject&,
-                Json::Value const& known)> extra = nullptr)
-        {
-            try
-            {
-                auto obj = deserialize(testItem.SerializedText);
-
-                if (BEAST_EXPECT(obj))
+        auto test =
+            [&](TestItem const& testItem,
+                std::function<bool(ripple::STObject&, Json::Value const& known)>
+                    extra = nullptr) {
+                try
                 {
-                    auto check = true;
-                    auto const known = parseJson(testItem.JsonText);
-                    if (extra)
-                        check = extra(*obj, known);
-                    if (check)
+                    auto obj = deserialize(testItem.SerializedText);
+
+                    if (BEAST_EXPECT(obj))
                     {
-                        BEAST_EXPECT(obj->getJson(JsonOptions::none) == known);
+                        auto check = true;
+                        auto const known = parseJson(testItem.JsonText);
+                        if (extra)
+                            check = extra(*obj, known);
+                        if (check)
+                        {
+                            BEAST_EXPECT(
+                                obj->getJson(JsonOptions::none) == known);
+                        }
                     }
                 }
-            }
-            catch (...)
-            {
-                fail();
-            }
-        };
+                catch (...)
+                {
+                    fail();
+                }
+            };
 
-        test(getKnownTxSigned(), [&](auto& obj, auto const& known)
-        {
-            ripple::STTx tx{ std::move(obj) };
+        test(getKnownTxSigned(), [&](auto& obj, auto const& known) {
+            ripple::STTx tx{std::move(obj)};
             this->verifyKnownTx(tx);
             this->BEAST_EXPECT(tx.getJson(JsonOptions::none) == known);
             return false;
@@ -166,7 +178,8 @@ private:
         test(getKnownMetadata());
     }
 
-    void testMakeSttx()
+    void
+    testMakeSttx()
     {
         testcase("Make Sttx");
 
@@ -209,8 +222,8 @@ private:
             }
             catch (std::exception const& e)
             {
-                BEAST_EXPECTS(std::string{ e.what() } ==
-                    "Field not found: TransactionType",
+                BEAST_EXPECTS(
+                    std::string{e.what()} == "Field not found: TransactionType",
                     e.what());
             }
             try
@@ -220,8 +233,9 @@ private:
             }
             catch (std::exception const& e)
             {
-                BEAST_EXPECTS(std::string{ e.what() } ==
-                    "Field not found: TransactionType", e.what());
+                BEAST_EXPECTS(
+                    std::string{e.what()} == "Field not found: TransactionType",
+                    e.what());
             }
         }
         {
@@ -233,7 +247,7 @@ private:
             }
             catch (std::exception const& e)
             {
-                BEAST_EXPECT(std::string{ e.what() } == "invalid JSON");
+                BEAST_EXPECT(std::string{e.what()} == "invalid JSON");
             }
         }
     }
@@ -252,6 +266,6 @@ public:
 
 BEAST_DEFINE_TESTSUITE(Serialize, keys, serialize);
 
-} // test
+}  // namespace test
 
-} // serialize
+}  // namespace offline

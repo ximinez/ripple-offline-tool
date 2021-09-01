@@ -23,10 +23,8 @@
 
 #include <string>
 
-namespace offline
-{
-namespace test
-{
+namespace offline {
+namespace test {
 
 struct TestItem
 {
@@ -34,13 +32,11 @@ struct TestItem
     std::string SerializedText;
 };
 
-inline
-TestItem
-const& getKnownTxSigned()
+inline TestItem const&
+getKnownTxSigned()
 {
     // From the ripplelibppdemo output
-    static TestItem testTx
-    {
+    static TestItem testTx{
         R"({
             "Account" : "rG1QQv2nh2gr7RCZ1P8YYcBUKCCN633jCn",
             "Amount" :
@@ -73,18 +69,15 @@ const& getKnownTxSigned()
         "0DC4EC57BA1A707AF0C28DC9383E09643D0220195B9FDBE383B813A539F3B"
         "70E130482E92D1E1210B0F85551E11B3F81EB98BB8114AE123A8556F3CF91"
         "154711376AFB0F894F832B3D8314B5F762798A53D543A014CAF8B297CFF8F"
-        "2F937E8"
-    };
+        "2F937E8"};
     return testTx;
 }
 
-inline
-TestItem
-const& getKnownTxUnsigned()
+inline TestItem const&
+getKnownTxUnsigned()
 {
     // From the ripplelibppdemo output
-    static TestItem testTx
-    {
+    static TestItem testTx{
         R"({
            "Account" : "r9mC1zjD9u5SJXw56pdPhxoDSHaiNcisET",
            "Amount" : {
@@ -108,14 +101,12 @@ const& getKnownTxUnsigned()
         "68400000000000006469D7542CEDF137080000000000000000000000000043"
         "4E59000000000041C8BE2C0A6AA17471B9F6D0AF92AAB1C94D5A2581146033"
         "C369F0723DAE44A22957D7EF492CC5F80A2D8314B5F762798A53D543A014CA"
-        "F8B297CFF8F2F937E8"
-    };
+        "F8B297CFF8F2F937E8"};
     return testTx;
 }
 
-inline
-TestItem
-const& getKnownMetadata()
+inline TestItem const&
+getKnownMetadata()
 {
     // From tx FC8CB8BFE0BEE91BCC39BBB31827230BEDF273C300EC2F6DB212A31CA9CE7E94
     // in ledger 28812538 (chosen arbitrarily)
@@ -261,12 +252,11 @@ const& getKnownMetadata()
         "CBADF66AFE011100000000000000000000000045555200000000000211"
         "2ADB0B3959D60A6E6991F729E1918B7163925230031100000000000000"
         "0000000000000000000000000004110000000000000000000000000000"
-        "000000000000E1E1F1031000"
-    };
+        "000000000000E1E1F1031000"};
     return testMeta;
 }
 
-} // test
-} // serialize
+}  // namespace test
+}  // namespace offline
 
-#endif // !SERIALIZE_TESTS_KNOWNTX_H_INCLUDED
+#endif  // !SERIALIZE_TESTS_KNOWNTX_H_INCLUDED

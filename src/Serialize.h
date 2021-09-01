@@ -23,13 +23,11 @@
 #include <ripple/protocol/st.h>
 #include <optional>
 
-namespace boost
-{
-namespace filesystem
-{
+namespace boost {
+namespace filesystem {
 class path;
 }
-}
+}  // namespace boost
 
 namespace offline {
 
@@ -48,4 +46,4 @@ deserialize(std::string const& blob);
 ripple::STTx
 make_sttx(std::string const& data);
 
-} // serialize
+}  // namespace offline

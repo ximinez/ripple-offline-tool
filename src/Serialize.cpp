@@ -19,9 +19,10 @@
 //==============================================================================
 
 #include <Serialize.h>
-#include <ripple/basics/strHex.h>
+
 #include <ripple/basics/StringUtilities.h>
 #include <ripple/basics/base64.h>
+#include <ripple/basics/strHex.h>
 #include <ripple/json/json_reader.h>
 #include <ripple/json/to_string.h>
 #include <ripple/protocol/HashPrefix.h>
@@ -65,14 +66,14 @@ deserialize(std::string const& blob)
 {
     using namespace ripple;
 
-    auto const unhex{ strUnHex(blob) };
+    auto const unhex{strUnHex(blob)};
 
     if (!unhex || !unhex->size())
-        return{};
+        return {};
 
-    SerialIter sitTrans{ makeSlice(*unhex) };
+    SerialIter sitTrans{makeSlice(*unhex)};
     // Can Throw
-    return STObject{ std::ref(sitTrans), sfGeneric };
+    return STObject{std::ref(sitTrans), sfGeneric};
 }
 
 ripple::STTx
@@ -85,8 +86,8 @@ make_sttx(std::string const& data)
     }
     catch (std::exception const& e)
     {
-        auto msg = std::string{ "unable to deserialize (internal: " }
-            + e.what() + ")";
+        auto msg =
+            std::string{"unable to deserialize (internal: "} + e.what() + ")";
         throw std::runtime_error(msg);
     }
     if (!obj)
@@ -102,7 +103,7 @@ make_sttx(std::string const& data)
 
     obj->makeFieldPresent(sfSigningPubKey);
     // Can Throw
-    return STTx{ std::move(*obj) };
+    return STTx{std::move(*obj)};
 }
 
-} // serialize
+}  // namespace offline

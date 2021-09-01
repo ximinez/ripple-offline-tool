@@ -19,23 +19,16 @@
 //==============================================================================
 
 #include <optional>
-#include <vector>
 #include <string>
+#include <vector>
 
-namespace boost
-{
-namespace filesystem
-{
+namespace boost {
+namespace filesystem {
 class path;
 }
-}
+}  // namespace boost
 
-enum class InputType
-{
-    none = 0,
-    readstdin,
-    commandline
-};
+enum class InputType { none = 0, readstdin, commandline };
 
 int
 doSerialize(std::string const& data);
@@ -44,21 +37,21 @@ int
 doDeserialize(std::string const& data);
 
 int
-doSingleSign(std::string const& data,
-    boost::filesystem::path const& keyFile);
+doSingleSign(std::string const& data, boost::filesystem::path const& keyFile);
 
 int
-doMultiSign(std::string const& data,
-    boost::filesystem::path const& keyFile);
+doMultiSign(std::string const& data, boost::filesystem::path const& keyFile);
 
 int
-doCreateKeyfile(boost::filesystem::path const& keyFile,
+doCreateKeyfile(
+    boost::filesystem::path const& keyFile,
     std::optional<std::string> const& keytype,
     std::optional<std::string> const& seed);
 
 int
-runCommand (const std::string& command,
-    std::vector <std::string> const& args,
+runCommand(
+    const std::string& command,
+    std::vector<std::string> const& args,
     boost::filesystem::path const& keyFile,
     std::optional<std::string> const& keyType,
     InputType const& inputType);
