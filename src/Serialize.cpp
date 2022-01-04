@@ -25,6 +25,7 @@
 #include <ripple/basics/strHex.h>
 #include <ripple/json/json_reader.h>
 #include <ripple/json/to_string.h>
+#include <ripple/protocol/ErrorCodes.h>
 #include <ripple/protocol/HashPrefix.h>
 #include <ripple/protocol/Sign.h>
 #include <boost/filesystem.hpp>
@@ -49,6 +50,8 @@ makeObject(Json::Value const& json)
     using namespace ripple;
 
     STParsedJSONObject parsed("", json);
+    if (!parsed.object)
+        throw std::runtime_error(rpcErrorString(parsed.error));
 
     return parsed.object;
 }
@@ -96,6 +99,8 @@ make_sttx(std::string const& data)
         if (json)
             obj = offline::makeObject(json);
         else
+            throw std::runtime_error("invalid JSON");
+        if (!obj)
             throw std::runtime_error("invalid JSON");
     }
 
