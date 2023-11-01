@@ -2,14 +2,14 @@ cmake_minimum_required (VERSION 3.11)
 project (ripple-offline-tool)
 
 #[===========================================[
-  The tool depends on the xrpl_core
+  The tool depends on the libxrpl
   library which is defined by the rippled
   project. This looks for installed rippled
   libs and, if not found, pulls them in with
   FetchContent.
   (See also: https://github.com/ripple/validator-keys-tool/blob/master/CMakeLists.txt)
 #]===========================================]
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Builds/CMake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(OfflineNIH)
 
 get_directory_property(has_parent PARENT_DIRECTORY)
@@ -20,8 +20,8 @@ if(coverage)
   set(coverage OFF CACHE BOOL "gcc/clang only" FORCE)
 endif()
 if (NOT has_parent)
-  find_package(Ripple QUIET)
-  if (NOT TARGET Ripple::xrpl_core)
+  find_package(xrpl REQUIRED)
+  if (NOT TARGET xrpl::libxrpl)
 
     find_package(Git)
 
@@ -41,7 +41,7 @@ if (NOT has_parent)
 
     # rippled_tag is cache string and can be overriden when configuring
     # with -Drippled_tag=commit_or_tag in order to pick a specific
-    # rippled version to download. Default tag is develop/master/release as 
+    # rippled version to download. Default tag is develop/master/release as
     # determined by the branch of this project
     if (NOT (_branch STREQUAL "master" OR _branch STREQUAL "release"))
       set (rippled_tag "develop" CACHE STRING
@@ -77,15 +77,19 @@ add_executable (ripple-offline-tool
   src/RippleKey.cpp
   src/Serialize.cpp
   src/OfflineTool.cpp
-  ## UNIT TESTS:
+  # UNIT TESTS:
   src/test/RippleKey_test.cpp
   src/test/Serialize_test.cpp
   src/test/OfflineTool_test.cpp)
 target_include_directories (ripple-offline-tool PRIVATE src)
-target_link_libraries (ripple-offline-tool Ripple::xrpl_core Offline::opts)
+target_link_libraries (ripple-offline-tool xrpl::libxrpl Offline::opts)
 
 if (has_parent)
   set_target_properties (validator-keys PROPERTIES EXCLUDE_FROM_ALL ON)
   set_target_properties (validator-keys PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD ON)
 endif ()
 
+include(CTest)
+if(BUILD_TESTING)
+  add_test(test validator-keys --unittest)
+endif()

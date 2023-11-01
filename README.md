@@ -1,74 +1,29 @@
 # ripple-offline-tool
  
-[![Build Status](https://travis-ci.org/ximinez/ripple-offline-tool.svg?branch=master)](https://travis-ci.org/ximinez/ripple-offline-tool)
-[![Build status](https://ci.appveyor.com/api/projects/status/ypsy8txb79ppe4g0?svg=true)](https://ci.appveyor.com/project/ximinez/ripple-offline-tool)
-[![codecov](https://codecov.io/gh/ximinez/ripple-offline-tool/branch/master/graph/badge.svg)](https://codecov.io/gh/ximinez/ripple-offline-tool)
-
 Rippled serialization and transaction signing command-line tool
 
-## Table of contents
+## Build
 
-* [Dependencies](#dependencies)
-  * [rippled inclusion](#rippled-inclusion)
-  * [Other dependencies](#other-dependencies)
-* [Build and run](#build-and-run)
-* [Usage](#guide)
-  * [Key File Format](#key-file-format)
-
-## Dependencies
-
-### rippled inclusion
-
-This project depends on the [rippled](https://github.com/ripple/rippled.git)
-repository for core signing functionality. If you have built and installed
-rippled, you can point this project at your installation using
-`CMAKE_PREFIX_PATH` (if you have installed in a standard system search path,
-this is not needed), e.g.:
+If you do not have package `xrpl` in your local Conan cache,
+you can add the Ripple remote to download it:
 
 ```
-$ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/path/to/rippled/installation/root ../..
+conan remote add ripple http://18.143.149.228:8081/artifactory/api/conan/conan-non-prod
 ```
 
-Alternatively, if you do not have a local installation of rippled development
-files that you want to use, then this project will fetch an appropriate
-version of the source code using CMake's FetchContent.
-
-
-### Other dependencies
-
-* C++14 or greater
-* [Boost](http://www.boost.org/) - 1.70+ required
-* [OpenSSL](https://www.openssl.org/)
-* [cmake](https://cmake.org) - 3.11+ required
-
-## Build and run
-
-For linux and other unix-like OSes, run the following commands:
+The build requirements and commands are the exact same as
+[those](https://github.com/XRPLF/rippled/blob/develop/BUILD.md) for rippled.
+In short:
 
 ```
-$ cd ${YOUR_RIPPLE_SERIALIZE_DIRECTORY}
-$ mkdir -p build
-$ cd build
-$ cmake .. -DCMAKE_BUILD_TYPE=Release
-$ cmake --build . --parallel
-$ ./ripple-offline-tool --unittest
-$ ./ripple-offline-tool --help
+mkdir .build
+cd .build
+conan install .. --output-folder . --build missing
+cmake -DCMAKE_TOOLCHAIN_FILE:FILEPATH=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build .
+./ripple-offline-tool --unittest
+./ripple-offline-tool
 ```
-
-For 64-bit Windows, open a MSBuild Command Prompt for Visual Studio
-and run the following commands:
-
-```
-> cd %YOUR_RIPPLE_SERIALIZE_DIRECTORY%
-> mkdir build
-> cd build
-> cmake -G"Visual Studio 15 2017 Win64" ..
-> cmake --build . --config Release --parallel
-> .\Release\ripple-offline-tool.exe --unittest
-> .\Release\ripple-offline-tool.exe --help
-```
-
-32-bit Windows builds are not officially supported.
 
 # Usage
 
