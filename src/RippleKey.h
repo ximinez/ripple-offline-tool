@@ -18,6 +18,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 //==============================================================================
 
+#include <ripple/protocol/HashPrefix.h>
+#include <ripple/protocol/SecretKey.h>
 #include <ripple/protocol/st.h>
 
 namespace boost {
@@ -25,6 +27,9 @@ namespace filesystem {
 class path;
 }
 }  // namespace boost
+
+using PublicKey = ripple::PublicKey;
+using SecretKey = ripple::SecretKey;
 
 namespace offline {
 
@@ -37,20 +42,26 @@ private:
     }
     ripple::KeyType keyType_;
     ripple::Seed seed_;
-    ripple::PublicKey publicKey_;
-    ripple::SecretKey secretKey_;
+
+    // struct used to contain both public and secret keys
+    struct Keys
+    {
+        PublicKey publicKey;
+        SecretKey secretKey;
+
+        Keys() = delete;
+        Keys(std::pair<PublicKey, SecretKey> p)
+            : publicKey(p.first), secretKey(p.second)
+        {
+        }
+    };
+
+    Keys keys_;
 
 public:
-    RippleKey() : RippleKey(RippleKey::defaultKeyType())
-    {
-    }
-
-    explicit RippleKey(ripple::KeyType const& keyType)
-        : RippleKey(keyType, ripple::randomSeed())
-    {
-    }
-
-    RippleKey(ripple::KeyType const& keyType, ripple::Seed const& seed);
+    RippleKey(
+        ripple::KeyType const& keyType = RippleKey::defaultKeyType(),
+        ripple::Seed const& seed = ripple::randomSeed());
 
     /** Attempt to construct RippleKey with variable parameters
 
@@ -100,6 +111,16 @@ public:
     void
     multiSign(std::optional<ripple::STTx>& tx) const;
 
+    /** Sign arbitrary data
+
+        @param hashPrefix HashPrefixType
+        @param obj STObject to sign
+    */
+    void
+    arbitrarySign(
+        std::optional<ripple::HashPrefix> const& hashPrefix,
+        ripple::STObject& obj) const;
+
     /// KeyType of this key
     ripple::KeyType const&
     keyType() const
@@ -111,7 +132,7 @@ public:
     ripple::PublicKey const&
     publicKey() const
     {
-        return publicKey_;
+        return keys_.publicKey;
     }
 };
 }  // namespace offline

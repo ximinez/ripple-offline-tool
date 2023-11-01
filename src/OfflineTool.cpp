@@ -24,12 +24,13 @@
 
 #include <ripple/beast/core/SemanticVersion.h>
 #include <ripple/beast/unit_test.h>
+#include <ripple/protocol/HashPrefix.h>
+
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/preprocessor/stringize.hpp>
 #include <boost/program_options.hpp>
-#include <beast/unit_test/dstream.hpp>
 #ifdef BOOST_MSVC
 #ifndef WIN32_LEAN_AND_MEAN  // VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
@@ -70,8 +71,7 @@ static int
 runUnitTests()
 {
     using namespace beast::unit_test;
-    beast::unit_test::dstream dout{std::cout};
-    reporter r{dout};
+    reporter r;
     bool const anyFailed = r.run_each(global_suites());
     if (anyFailed)
         return EXIT_FAILURE;  // LCOV_EXCL_LINE
@@ -197,6 +197,49 @@ doMultiSign(std::string const& data, boost::filesystem::path const& keyFile)
 }
 
 int
+doArbitrarySign(std::string const& data, boost::filesystem::path const& keyFile)
+{
+    using namespace ripple;
+    using namespace offline;
+    auto const fail = [&]() {
+        std::cerr << "Unable to sign \"" << data << "\"" << std::endl;
+    };
+    std::optional<ripple::STObject> obj;
+    try
+    {
+        obj.emplace(make_stobject(boost::trim_copy(data)));
+    }
+    catch (std::exception const& e)
+    {
+        fail();
+        std::cerr << "Detail: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+    try
+    {
+        assert(obj);
+        auto const rippleKey = RippleKey::make_RippleKey(keyFile);
+
+        if (!obj)
+        {
+            throw std::runtime_error("Internal error.");
+        }
+
+        rippleKey.arbitrarySign(/*HashPrefix::manifest*/ std::nullopt, *obj);
+
+        std::cout << obj->getJson(JsonOptions::none).toStyledString()
+                  << std::endl;
+        return EXIT_SUCCESS;
+    }
+    catch (std::exception const& e)
+    {
+        fail();
+        std::cerr << "Reason: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+}
+
+int
 doCreateKeyfile(
     boost::filesystem::path const& keyFile,
     std::optional<std::string> const& keytype,
@@ -277,6 +320,10 @@ runCommand(
             BOOST_ASSERT(input);
             return doMultiSign(*input, keyFile);
         };
+    auto const asign = [](auto const& input, auto const& keyFile, auto const&) {
+        BOOST_ASSERT(input);
+        return doArbitrarySign(*input, keyFile);
+    };
     auto const createkeyfile =
         [](auto const& seed, auto const& keyFile, auto const& keyType) {
             return doCreateKeyfile(keyFile, keyType, seed);
@@ -289,6 +336,7 @@ runCommand(
         {"deserialize", {false, deserialize}},
         {"sign", {false, sign}},
         {"multisign", {false, multisign}},
+        {"asign", {false, asign}},
         {"createkeyfile", {true, createkeyfile}},
     };
 
@@ -340,7 +388,7 @@ printHelp(
     const boost::program_options::options_description& desc,
     boost::filesystem::path const& defaultKeyfile)
 {
-    static std::string const name = "ripple-offline-tool";
+    static std::string const name = "ripple-offline";
 
     std::cerr << name << " [options] <command> [<argument> ...]\n"
               << desc << std::endl
@@ -355,6 +403,8 @@ printHelp(
       Signing commands require a valid keyfile.
       Input is serialized or unserialized JSON.
       Output is unserialized JSON.
+  Arbitrary signing:
+    asign <argument>|--stdin            Sign arbitrary data.
   Key Management:
     createkeyfile [<key>|--stdin]       Create keyfile. A random
       seed will be used if no <key> is provided on the command line
@@ -465,7 +515,7 @@ main(int argc, char** argv)
     // LCOV_EXCL_START
     catch (std::exception const&)
     {
-        std::cerr << "ripple-offline-tool: Incorrect command line syntax."
+        std::cerr << "ripple-offline: Incorrect command line syntax."
                   << std::endl;
         std::cerr << "Use '--help' for a list of options." << std::endl;
         return EXIT_FAILURE;
@@ -480,7 +530,7 @@ main(int argc, char** argv)
     // LCOV_EXCL_START
     if (vm.count("version"))
     {
-        std::cout << "ripple-offline-tool version " << getVersionString()
+        std::cout << "ripple-offline version " << getVersionString()
                   << std::endl;
         return EXIT_SUCCESS;
     }

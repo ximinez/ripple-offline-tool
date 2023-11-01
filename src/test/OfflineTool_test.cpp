@@ -258,13 +258,18 @@ private:
 
         auto const& knownTx = getKnownTxSigned();
         auto const origTx = offline::deserialize(knownTx.SerializedText);
-
         auto test = [&](std::string const& testData) {
             using namespace ripple;
 
+            std::unordered_set<uint256, beast::uhash<>> const presets{
+                ripple::featureExpandedSignerList};
+            Rules const rules{presets};
+            BEAST_EXPECT(rules.enabled(ripple::featureExpandedSignerList));
+
             auto go = [&](std::string const& json) {
                 auto const tx = make_sttx(json);
-                BEAST_EXPECT(tx.checkSign(STTx::RequireFullyCanonicalSig::yes));
+                BEAST_EXPECT(
+                    tx.checkSign(STTx::RequireFullyCanonicalSig::yes, rules));
                 BEAST_EXPECT(tx[sfSigningPubKey] != (*origTx)[sfSigningPubKey]);
                 BEAST_EXPECT(tx[sfTxnSignature] != (*origTx)[sfTxnSignature]);
                 BEAST_EXPECT(!tx.isFieldPresent(sfSigners));
@@ -380,7 +385,6 @@ private:
         std::string const subdir = "test_key_file";
         KeyFileGuard g(*this, subdir);
         path const keyFile = subdir / ".ripple" / "secret-key.txt";
-
         {
             RippleKey const key;
             key.writeToFile(keyFile);
@@ -388,6 +392,12 @@ private:
 
         auto test = [&](std::string const& testData) {
             using namespace ripple;
+
+            std::unordered_set<uint256, beast::uhash<>> const presets{
+                ripple::featureExpandedSignerList};
+            Rules const rules{presets};
+            BEAST_EXPECT(rules.enabled(ripple::featureExpandedSignerList));
+
             {
                 CoutRedirect coutRedirect;
 
@@ -399,8 +409,8 @@ private:
                     BEAST_EXPECTS(
                         coutRedirect.err().empty(), coutRedirect.err());
                     auto const tx = make_sttx(coutRedirect.out());
-                    BEAST_EXPECT(
-                        tx.checkSign(STTx::RequireFullyCanonicalSig::yes));
+                    BEAST_EXPECT(tx.checkSign(
+                        STTx::RequireFullyCanonicalSig::yes, rules));
                     BEAST_EXPECT(tx.isFieldPresent(sfSigningPubKey));
                     BEAST_EXPECT(tx[sfSigningPubKey].empty());
                     BEAST_EXPECT(!tx.isFieldPresent(sfTxnSignature));
@@ -422,7 +432,8 @@ private:
                 BEAST_EXPECT(exit == EXIT_SUCCESS);
                 BEAST_EXPECTS(coutRedirect.err().empty(), coutRedirect.err());
                 auto const tx = make_sttx(coutRedirect.out());
-                BEAST_EXPECT(tx.checkSign(STTx::RequireFullyCanonicalSig::yes));
+                BEAST_EXPECT(
+                    tx.checkSign(STTx::RequireFullyCanonicalSig::yes, rules));
                 BEAST_EXPECT(tx.isFieldPresent(sfSigningPubKey));
                 BEAST_EXPECT(tx[sfSigningPubKey].empty());
                 BEAST_EXPECT(!tx.isFieldPresent(sfTxnSignature));

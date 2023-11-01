@@ -43,6 +43,9 @@ serialize(ripple::STObject const& tx);
 std::optional<ripple::STObject>
 deserialize(std::string const& blob);
 
+ripple::STObject
+make_stobject(std::string const& data);
+
 ripple::STTx
 make_sttx(std::string const& data);
 
