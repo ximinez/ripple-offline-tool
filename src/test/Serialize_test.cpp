@@ -198,8 +198,8 @@ private:
                         tx[sfSigningPubKey] == (*origTx)[sfSigningPubKey]);
                     BEAST_EXPECT(
                         tx[sfTxnSignature] == (*origTx)[sfTxnSignature]);
-                    BEAST_EXPECT(
-                        tx.checkSign(STTx::RequireFullyCanonicalSig::yes));
+                    BEAST_EXPECT(tx.checkSign(
+                        STTx::RequireFullyCanonicalSig::yes, STTx::maximum));
                 }
                 {
                     auto const tx = offline::make_sttx(known.JsonText);
@@ -207,8 +207,8 @@ private:
                         tx[sfSigningPubKey] == (*origTx)[sfSigningPubKey]);
                     BEAST_EXPECT(
                         tx[sfTxnSignature] == (*origTx)[sfTxnSignature]);
-                    BEAST_EXPECT(
-                        tx.checkSign(STTx::RequireFullyCanonicalSig::yes));
+                    BEAST_EXPECT(tx.checkSign(
+                        STTx::RequireFullyCanonicalSig::yes, STTx::maximum));
                 }
             }
         }

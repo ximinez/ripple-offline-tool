@@ -264,7 +264,8 @@ private:
 
             auto go = [&](std::string const& json) {
                 auto const tx = make_sttx(json);
-                BEAST_EXPECT(tx.checkSign(STTx::RequireFullyCanonicalSig::yes));
+                BEAST_EXPECT(tx.checkSign(
+                    STTx::RequireFullyCanonicalSig::yes, STTx::maximum));
                 BEAST_EXPECT(tx[sfSigningPubKey] != (*origTx)[sfSigningPubKey]);
                 BEAST_EXPECT(tx[sfTxnSignature] != (*origTx)[sfTxnSignature]);
                 BEAST_EXPECT(!tx.isFieldPresent(sfSigners));
@@ -399,8 +400,8 @@ private:
                     BEAST_EXPECTS(
                         coutRedirect.err().empty(), coutRedirect.err());
                     auto const tx = make_sttx(coutRedirect.out());
-                    BEAST_EXPECT(
-                        tx.checkSign(STTx::RequireFullyCanonicalSig::yes));
+                    BEAST_EXPECT(tx.checkSign(
+                        STTx::RequireFullyCanonicalSig::yes, STTx::maximum));
                     BEAST_EXPECT(tx.isFieldPresent(sfSigningPubKey));
                     BEAST_EXPECT(tx[sfSigningPubKey].empty());
                     BEAST_EXPECT(!tx.isFieldPresent(sfTxnSignature));
@@ -422,7 +423,8 @@ private:
                 BEAST_EXPECT(exit == EXIT_SUCCESS);
                 BEAST_EXPECTS(coutRedirect.err().empty(), coutRedirect.err());
                 auto const tx = make_sttx(coutRedirect.out());
-                BEAST_EXPECT(tx.checkSign(STTx::RequireFullyCanonicalSig::yes));
+                BEAST_EXPECT(tx.checkSign(
+                    STTx::RequireFullyCanonicalSig::yes, STTx::maximum));
                 BEAST_EXPECT(tx.isFieldPresent(sfSigningPubKey));
                 BEAST_EXPECT(tx[sfSigningPubKey].empty());
                 BEAST_EXPECT(!tx.isFieldPresent(sfTxnSignature));

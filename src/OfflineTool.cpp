@@ -24,12 +24,13 @@
 
 #include <ripple/beast/core/SemanticVersion.h>
 #include <ripple/beast/unit_test.h>
+#include <ripple/beast/unit_test/dstream.hpp>
+
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/preprocessor/stringize.hpp>
 #include <boost/program_options.hpp>
-#include <beast/unit_test/dstream.hpp>
 #ifdef BOOST_MSVC
 #ifndef WIN32_LEAN_AND_MEAN  // VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
