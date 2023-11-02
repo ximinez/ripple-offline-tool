@@ -252,6 +252,42 @@ private:
         }
     }
 
+    void
+    testBad()
+    {
+        testcase("Bad input");
+
+        // This transaction has a DestinationTag larger than 32-bits
+        std::string const bad{
+            R"({
+                "Account" : "rDAE53VfMvftPB4ogpWGWvzkQxfht6JPxr",
+                "Amount" : "89031976",
+                "Destination" : "rU2mEJSLqBRkYLVTv55rFTgQajkLTnT6mA",
+                "DestinationTag" : 641505641505,
+                "Fee" : "10000",
+                "Flags" : 0,
+                "LastLedgerSequence" : 68743734,
+                "Sequence" : 68133057,
+                "TransactionType" : "Payment"
+            })"};
+        {
+            auto json = parseJson(bad);
+            BEAST_EXPECT(json);
+            try
+            {
+                auto obj = makeObject(json);
+                fail();
+            }
+            catch (std::exception const& e)
+            {
+                BEAST_EXPECT(
+                    e.what() ==
+                    std::string(
+                        "invalidParamsField '.DestinationTag' has bad type."));
+            }
+        }
+    }
+
 public:
     void
     run() override
@@ -261,6 +297,7 @@ public:
         testSerialize();
         testDeserialize();
         testMakeSttx();
+        testBad();
     }
 };
 
