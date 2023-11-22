@@ -19,7 +19,10 @@ In short:
 mkdir .build
 cd .build
 conan install .. --output-folder . --build missing
-cmake -DCMAKE_TOOLCHAIN_FILE:FILEPATH=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake -DCMAKE_POLICY_DEFAULT_CMP0091=NEW \
+    -DCMAKE_TOOLCHAIN_FILE:FILEPATH=conan_toolchain.cmake \
+    -DCMAKE_BUILD_TYPE=Release \
+    ..
 cmake --build .
 ./ripple-offline-tool --unittest
 ./ripple-offline-tool

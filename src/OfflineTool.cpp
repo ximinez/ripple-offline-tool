@@ -24,7 +24,6 @@
 
 #include <ripple/beast/core/SemanticVersion.h>
 #include <ripple/beast/unit_test.h>
-#include <ripple/beast/unit_test/dstream.hpp>
 
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem.hpp>
@@ -71,8 +70,7 @@ static int
 runUnitTests()
 {
     using namespace beast::unit_test;
-    beast::unit_test::dstream dout{std::cout};
-    reporter r{dout};
+    reporter r;
     bool const anyFailed = r.run_each(global_suites());
     if (anyFailed)
         return EXIT_FAILURE;  // LCOV_EXCL_LINE
