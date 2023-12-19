@@ -2,7 +2,7 @@
 # which can be installed into the local cache with:
 # "conan create . ximinez/downstream"
 [requires]
-xrpl/2.0.0-b4
+xrpl/2.2.0-b1@ximinez/downstream
 
 [generators]
 CMakeDeps
