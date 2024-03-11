@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.11)
-project (ripple-offline-tool)
+project (ripple-offline)
 
 #[===========================================[
   The tool depends on the libxrpl
@@ -73,7 +73,7 @@ include(OfflineSanity)
 include(OfflineCov)
 include(OfflineInterface)
 
-add_executable (ripple-offline-tool
+add_executable (ripple-offline
   src/RippleKey.cpp
   src/Serialize.cpp
   src/OfflineTool.cpp
@@ -81,15 +81,15 @@ add_executable (ripple-offline-tool
   src/test/RippleKey_test.cpp
   src/test/Serialize_test.cpp
   src/test/OfflineTool_test.cpp)
-target_include_directories (ripple-offline-tool PRIVATE src)
-target_link_libraries (ripple-offline-tool xrpl::libxrpl Offline::opts)
+target_include_directories (ripple-offline PRIVATE src)
+target_link_libraries (ripple-offline xrpl::libxrpl Offline::opts)
 
 if (has_parent)
-  set_target_properties (ripple-offline-tool PROPERTIES EXCLUDE_FROM_ALL ON)
-  set_target_properties (ripple-offline-tool PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD ON)
+  set_target_properties (ripple-offline PROPERTIES EXCLUDE_FROM_ALL ON)
+  set_target_properties (ripple-offline PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD ON)
 endif ()
 
 include(CTest)
 if(BUILD_TESTING)
-  add_test(test ripple-offline-tool --unittest)
+  add_test(test ripple-offline --unittest)
 endif()

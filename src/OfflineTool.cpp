@@ -339,7 +339,7 @@ printHelp(
     const boost::program_options::options_description& desc,
     boost::filesystem::path const& defaultKeyfile)
 {
-    static std::string const name = "ripple-offline-tool";
+    static std::string const name = "ripple-offline";
 
     std::cerr << name << " [options] <command> [<argument> ...]\n"
               << desc << std::endl
@@ -464,7 +464,7 @@ main(int argc, char** argv)
     // LCOV_EXCL_START
     catch (std::exception const&)
     {
-        std::cerr << "ripple-offline-tool: Incorrect command line syntax."
+        std::cerr << "ripple-offline: Incorrect command line syntax."
                   << std::endl;
         std::cerr << "Use '--help' for a list of options." << std::endl;
         return EXIT_FAILURE;
@@ -479,7 +479,7 @@ main(int argc, char** argv)
     // LCOV_EXCL_START
     if (vm.count("version"))
     {
-        std::cout << "ripple-offline-tool version " << getVersionString()
+        std::cout << "ripple-offline version " << getVersionString()
                   << std::endl;
         return EXIT_SUCCESS;
     }

@@ -60,13 +60,13 @@ build_script:
           Push-Location "build/$cmake_target"
           cmake -G"Visual Studio 15 2017 Win64" ../..
           if ($LastExitCode -ne 0) { throw "CMake failed" }
-          cmake --build . --config $env:buildconfig --target ripple-offline-tool -- -m
+          cmake --build . --config $env:buildconfig --target ripple-offline -- -m
           if ($LastExitCode -ne 0) { throw "CMake build failed" }
           Pop-Location
 
 after_build:
   - ps: |
-        $exe="build/$cmake_target/$env:buildconfig/ripple-offline-tool"
+        $exe="build/$cmake_target/$env:buildconfig/ripple-offline"
         "Exe is at $exe"
 
 test_script:

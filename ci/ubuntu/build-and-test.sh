@@ -114,7 +114,7 @@ if [[ ${TARGET} == "docs" ]]; then
 fi
 popd
 
-export APP_PATH="$PWD/build/${BUILD_DIR}/ripple-offline-tool"
+export APP_PATH="$PWD/build/${BUILD_DIR}/ripple-offline"
 echo "using APP_PATH: ${APP_PATH}"
 
 # See what we've actually built

@@ -24,13 +24,13 @@ cmake -DCMAKE_POLICY_DEFAULT_CMP0091=NEW \
     -DCMAKE_BUILD_TYPE=Release \
     ..
 cmake --build .
-./ripple-offline-tool --unittest
-./ripple-offline-tool
+./ripple-offline --unittest
+./ripple-offline
 ```
 
 # Usage
 
-Run `ripple-offline-tool --help` for usage information.
+Run `ripple-offline --help` for usage information.
 
 ## Key File Format
 
