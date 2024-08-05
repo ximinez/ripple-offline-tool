@@ -225,12 +225,9 @@ private:
             return;
 
         std::optional<ripple::STTx> tx{std::move(*obj)};
-        std::unordered_set<uint256, beast::uhash<>> const presets{
-            ripple::featureExpandedSignerList};
-        Rules const rules{presets};
-        BEAST_EXPECT(rules.enabled(ripple::featureExpandedSignerList));
         // The hard-coded version is signed
-        auto check = tx->checkSign(STTx::RequireFullyCanonicalSig::yes, rules);
+        auto check =
+            tx->checkSign(STTx::RequireFullyCanonicalSig::yes, STTx::maximum);
         BEAST_EXPECT(check);
         {
             auto const key =
@@ -252,14 +249,15 @@ private:
             // Remove the signature
             tx->makeFieldAbsent(sfTxnSignature);
             tx->setAccountID(sfAccount, calcAccountID(key.publicKey()));
-            check = tx->checkSign(STTx::RequireFullyCanonicalSig::yes, rules);
+            check = tx->checkSign(
+                STTx::RequireFullyCanonicalSig::yes, STTx::maximum);
             BEAST_EXPECT(!check);
             BEAST_EXPECT(check.error() == "Invalid signature.");
 
             // Now re-sign it
             key.singleSign(tx);
-            BEAST_EXPECT(
-                tx->checkSign(STTx::RequireFullyCanonicalSig::yes, rules));
+            BEAST_EXPECT(tx->checkSign(
+                STTx::RequireFullyCanonicalSig::yes, STTx::maximum));
             // Same signature
             BEAST_EXPECT(tx->getFieldVL(sfSigningPubKey) == expectedSigningKey);
             BEAST_EXPECT(tx->getFieldVL(sfTxnSignature) == expectedSignature);
@@ -273,8 +271,8 @@ private:
 
             // Now multisign it with the test key
             key.multiSign(tx);
-            BEAST_EXPECT(
-                tx->checkSign(STTx::RequireFullyCanonicalSig::yes, rules));
+            BEAST_EXPECT(tx->checkSign(
+                STTx::RequireFullyCanonicalSig::yes, STTx::maximum));
             // No single signature
             BEAST_EXPECT(!tx->isFieldPresent(sfTxnSignature));
             BEAST_EXPECT(tx->getFieldVL(sfSigningPubKey).empty());
@@ -319,8 +317,8 @@ private:
             // Sign with a second key
             auto const key2 = RippleKey::make_RippleKey(kt, passphrase);
             key2.multiSign(tx);
-            BEAST_EXPECT(
-                tx->checkSign(STTx::RequireFullyCanonicalSig::yes, rules));
+            BEAST_EXPECT(tx->checkSign(
+                STTx::RequireFullyCanonicalSig::yes, STTx::maximum));
             // No single signature
             BEAST_EXPECT(!tx->isFieldPresent(sfTxnSignature));
             BEAST_EXPECT(tx->getFieldVL(sfSigningPubKey).empty());

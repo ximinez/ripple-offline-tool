@@ -1,5 +1,5 @@
 [requires]
-xrpl/2.3.0-b2
+xrpl/2.2.0-b2@ximinez/downstream
 
 [generators]
 CMakeDeps
