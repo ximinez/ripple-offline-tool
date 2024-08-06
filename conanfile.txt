@@ -1,5 +1,9 @@
+# Depends on https://github.com/ximinez/rippled/tree/downstream,
+# which can be installed into the local cache with:
+# "conan (create/export) . ximinez/downstream"
+# From the rippled repo directory
 [requires]
-xrpl/2.2.0-b2@ximinez/downstream
+xrpl/2.3.0-b2@ximinez/downstream
 
 [generators]
 CMakeDeps
