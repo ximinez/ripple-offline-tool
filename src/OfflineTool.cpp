@@ -132,6 +132,17 @@ doDeserialize(std::string const& data)
 }
 
 int
+doHash(ripple::HashPrefix prefix, std::string const& data)
+{
+    auto const obj = offline::make_stobject(data);
+
+    auto const result = obj.getHash(prefix);
+
+    std::cout << result << std::endl;
+    return EXIT_SUCCESS;
+}
+
+int
 doSign(
     std::string const& data,
     boost::filesystem::path const& keyFile,
@@ -311,6 +322,10 @@ runCommand(
         BOOST_ASSERT(input);
         return doDeserialize(*input);
     };
+    auto const txhash = [](auto const& input, auto const&, auto const&) {
+        BOOST_ASSERT(input);
+        return doHash(ripple::HashPrefix::transactionID, *input);
+    };
     auto const sign = [](auto const& input, auto const& keyFile, auto const&) {
         BOOST_ASSERT(input);
         return doSingleSign(*input, keyFile);
@@ -337,6 +352,7 @@ runCommand(
         {"sign", {false, sign}},
         {"multisign", {false, multisign}},
         {"asign", {false, asign}},
+        {"txhash", {false, txhash}},
         {"createkeyfile", {true, createkeyfile}},
     };
 
@@ -405,6 +421,8 @@ printHelp(
       Output is unserialized JSON.
   Arbitrary signing:
     asign <argument>|--stdin            Sign arbitrary data.
+  Hashing:
+    txhash <argument>|--stdin           Hash a transaction.
   Key Management:
     createkeyfile [<key>|--stdin]       Create keyfile. A random
       seed will be used if no <key> is provided on the command line
@@ -412,6 +430,8 @@ printHelp(
 
       Default keyfile is: )"
               << defaultKeyfile << "\n";
+    // In progress:
+    // hash <prefix> <argument>|--stdin             Hash an XRPL object.
 }
 
 InputType
