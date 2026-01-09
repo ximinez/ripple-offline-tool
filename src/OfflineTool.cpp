@@ -290,7 +290,7 @@ doCreateKeyfile(
 int
 doPublicKey(std::string const& publicKeyHex)
 {
-    auto error = [&publicKeyHex]() -> boost::optional<char const*> {
+    auto const error = [&publicKeyHex]() -> boost::optional<char const*> {
         using namespace ripple;
         if (auto blob = strUnHex(publicKeyHex))
         {
@@ -309,9 +309,12 @@ doPublicKey(std::string const& publicKeyHex)
         }
     }();
     if (error)
+    {
         std::cerr << "Invalid public key " << publicKeyHex << " " << *error
                   << std::endl;
-    return EXIT_FAILURE;
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
 }
 
 std::string
