@@ -103,7 +103,7 @@ private:
         path const keyFile = subdir / ".ripple" / "secret-key.txt";
 
         // Try some failure cases before writing the file
-        auto badFile = [&](const char* toWrite,
+        auto badFile = [&](char const* toWrite,
                            std::string const& expectedException) {
             path const badKeyFile = subdir / "bad-key.txt";
             if (toWrite)

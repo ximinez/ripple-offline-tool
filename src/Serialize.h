@@ -21,6 +21,7 @@
 #include <ripple/protocol/KeyType.h>
 #include <ripple/protocol/SecretKey.h>
 #include <ripple/protocol/st.h>
+
 #include <optional>
 
 namespace boost {

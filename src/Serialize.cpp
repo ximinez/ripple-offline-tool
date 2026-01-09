@@ -28,7 +28,9 @@
 #include <ripple/protocol/ErrorCodes.h>
 #include <ripple/protocol/HashPrefix.h>
 #include <ripple/protocol/Sign.h>
+
 #include <boost/filesystem.hpp>
+
 #include <fstream>
 
 namespace offline {

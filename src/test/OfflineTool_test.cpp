@@ -27,7 +27,9 @@
 
 #include <ripple/beast/unit_test.h>
 #include <ripple/protocol/SecretKey.h>
+
 #include <boost/format.hpp>
+
 #include <string>
 
 namespace offline {
@@ -552,10 +554,11 @@ private:
                 auto const key = RippleKey::make_RippleKey(keyFile);
 
                 auto const known = boost::str(
-                    boost::format("New ripple key created in %s\n"
-                                  "Key type is %s, and account ID is %s\n"
-                                  "\nThis file should be stored securely and "
-                                  "not shared\n\n") %
+                    boost::format(
+                        "New ripple key created in %s\n"
+                        "Key type is %s, and account ID is %s\n"
+                        "\nThis file should be stored securely and "
+                        "not shared\n\n") %
                     keyFile.string() % to_string(key.keyType()) %
                     toBase58(calcAccountID(key.publicKey())));
 
