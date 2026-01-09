@@ -626,6 +626,35 @@ private:
     }
 
     void
+    testPublicKey()
+    {
+        testcase("Get AccountID from Public Key");
+
+        std::string const pkHex{
+            "036F382B723879499B6067B00B241DDF6FBA7599E9F6BF36A422150CEE75FF08F"
+            "8"};
+        std::string const account{"rGse36vmL3teKPJwHvKaqgxKkrMKEbATGN"};
+
+        auto const [out, err] = [&pkHex, this]() {
+            CoutRedirect coutRedirect;
+
+            std::vector<std::string> args;
+            args.push_back(pkHex);
+
+            auto const exit =
+                runCommand("publickey", args, {}, {}, InputType::commandline);
+            BEAST_EXPECT(exit == EXIT_SUCCESS);
+            return std::make_pair(coutRedirect.out(), coutRedirect.err());
+        }();
+
+        std::string const expected =
+            "Public key: " + pkHex + "\nAccount ID: " + account + "\n";
+
+        BEAST_EXPECTS(err.empty(), err);
+        BEAST_EXPECTS(out == expected, out);
+    }
+
+    void
     testRunCommand()
     {
         testcase("Run Command");
@@ -717,6 +746,7 @@ public:
         testSingleSign();
         testMultiSign();
         testCreateKeyfile();
+        testPublicKey();
         testRunCommand();
     }
 };
