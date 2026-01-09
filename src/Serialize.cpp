@@ -79,8 +79,8 @@ deserialize(std::string const& blob)
     return STObject{std::ref(sitTrans), sfGeneric};
 }
 
-ripple::STTx
-make_sttx(std::string const& data)
+ripple::STObject
+make_stobject(std::string const& data)
 {
     std::optional<ripple::STObject> obj;
     try
@@ -103,6 +103,14 @@ make_sttx(std::string const& data)
         if (!obj)
             throw std::runtime_error("invalid JSON");
     }
+
+    return *obj;
+}
+
+ripple::STTx
+make_sttx(std::string const& data)
+{
+    std::optional<ripple::STObject> obj = make_stobject(data);
 
     using namespace ripple;
 

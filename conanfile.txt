@@ -1,0 +1,6 @@
+[requires]
+xrpl/3.0.0
+
+[generators]
+CMakeDeps
+CMakeToolchain

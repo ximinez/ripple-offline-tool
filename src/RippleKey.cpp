@@ -31,10 +31,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 namespace offline {
 
 RippleKey::RippleKey(ripple::KeyType const& keyType, ripple::Seed const& seed)
-    : keyType_(keyType), seed_(seed)
+    : keyType_(keyType)
+    , seed_(seed)
+    , keys_(ripple::generateKeyPair(keyType_, seed_))
 {
-    using namespace ripple;
-    std::tie(publicKey_, secretKey_) = generateKeyPair(keyType_, seed_);
 }
 
 RippleKey
@@ -113,11 +113,11 @@ RippleKey::writeToFile(boost::filesystem::path const& keyFile) const
     jv[jss::master_seed] = toBase58(seed_);
     jv[jss::master_seed_hex] = strHex(seed_);
     jv[jss::master_key] = seedAs1751(seed_);
-    jv[jss::account_id] = toBase58(calcAccountID(publicKey_));
-    jv[jss::public_key] = toBase58(TokenType::AccountPublic, publicKey_);
-    jv[jss::public_key_hex] = strHex(publicKey_);
-    jv["secret_key"] = toBase58(TokenType::AccountSecret, secretKey_);
-    jv["secret_key_hex"] = strHex(secretKey_);
+    jv[jss::account_id] = toBase58(calcAccountID(keys_.publicKey));
+    jv[jss::public_key] = toBase58(TokenType::AccountPublic, keys_.publicKey);
+    jv[jss::public_key_hex] = strHex(keys_.publicKey);
+    jv["secret_key"] = toBase58(TokenType::AccountSecret, keys_.secretKey);
+    jv["secret_key_hex"] = strHex(keys_.secretKey);
 
     if (!keyFile.parent_path().empty())
     {
@@ -147,9 +147,9 @@ RippleKey::singleSign(std::optional<ripple::STTx>& tx) const
             "Empty std::optional passed to RippleKey::singleSign.");
     }
     using namespace ripple;
-    tx->setFieldVL(sfSigningPubKey, publicKey_.slice());
+    tx->setFieldVL(sfSigningPubKey, keys_.publicKey.slice());
     tx->makeFieldAbsent(sfSigners);
-    tx->sign(publicKey_, secretKey_);
+    tx->sign(keys_.publicKey, keys_.secretKey);
 }
 
 void
@@ -165,15 +165,16 @@ RippleKey::multiSign(std::optional<ripple::STTx>& tx) const
     tx->setFieldVL(sfSigningPubKey, Slice{nullptr, 0});
     tx->makeFieldAbsent(sfTxnSignature);
 
-    auto const accountID = calcAccountID(publicKey_);
+    auto const accountID = calcAccountID(keys_.publicKey);
     Serializer s1 = buildMultiSigningData(*tx, accountID);
 
-    auto const multisig = ripple::sign(publicKey_, secretKey_, s1.slice());
+    auto const multisig =
+        ripple::sign(keys_.publicKey, keys_.secretKey, s1.slice());
 
     // Build an entry for this signer
     STObject signer(sfSigner);
     signer[sfAccount] = accountID;
-    signer[sfSigningPubKey] = publicKey_;
+    signer[sfSigningPubKey] = keys_.publicKey;
     signer[sfTxnSignature] = multisig;
 
     // Insert the signer into the array of signers
@@ -197,6 +198,38 @@ RippleKey::multiSign(std::optional<ripple::STTx>& tx) const
     Blob txBlob = s2.getData();
     SerialIter sit{makeSlice(txBlob)};
     tx.emplace(sit);
+}
+
+void
+RippleKey::arbitrarySign(
+    std::optional<ripple::HashPrefix> const& hashPrefix,
+    ripple::STObject& obj) const
+{
+    using namespace ripple;
+    if (hashPrefix)
+    {
+        auto const type = publicKeyType(keys_.publicKey.slice());
+        if (!type)
+        {
+            throw std::runtime_error("Invalid public key");
+        }
+        ripple::sign(obj, *hashPrefix, *type, keys_.secretKey);
+    }
+    else
+    {
+        Serializer s;
+        // s.add32(HashPrefix::manifest);
+        obj.addWithoutSigningFields(s);
+
+        STObject obj2(s.slice(), sfGeneric);
+        std::cout << obj2.getJson(JsonOptions::none).toStyledString()
+                  << std::endl;
+        std::cout << strHex(s.peekData()) << std::endl;
+
+        auto const result =
+            ripple::sign(keys_.publicKey, keys_.secretKey, s.slice());
+        set(obj, sfMessageKey, result);
+    }
 }
 
 }  // namespace offline

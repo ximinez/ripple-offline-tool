@@ -192,14 +192,18 @@ private:
             auto const origTx = offline::deserialize(known.SerializedText);
             if (BEAST_EXPECT(origTx))
             {
+                std::unordered_set<uint256, beast::uhash<>> const presets{
+                    ripple::featureExpandedSignerList};
+                Rules const rules{presets};
+                BEAST_EXPECT(rules.enabled(ripple::featureExpandedSignerList));
                 {
                     auto const tx = offline::make_sttx(known.SerializedText);
                     BEAST_EXPECT(
                         tx[sfSigningPubKey] == (*origTx)[sfSigningPubKey]);
                     BEAST_EXPECT(
                         tx[sfTxnSignature] == (*origTx)[sfTxnSignature]);
-                    BEAST_EXPECT(
-                        tx.checkSign(STTx::RequireFullyCanonicalSig::yes));
+                    BEAST_EXPECT(tx.checkSign(
+                        STTx::RequireFullyCanonicalSig::yes, rules));
                 }
                 {
                     auto const tx = offline::make_sttx(known.JsonText);
@@ -207,8 +211,8 @@ private:
                         tx[sfSigningPubKey] == (*origTx)[sfSigningPubKey]);
                     BEAST_EXPECT(
                         tx[sfTxnSignature] == (*origTx)[sfTxnSignature]);
-                    BEAST_EXPECT(
-                        tx.checkSign(STTx::RequireFullyCanonicalSig::yes));
+                    BEAST_EXPECT(tx.checkSign(
+                        STTx::RequireFullyCanonicalSig::yes, rules));
                 }
             }
         }
