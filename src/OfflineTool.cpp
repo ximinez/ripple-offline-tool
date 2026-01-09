@@ -284,7 +284,7 @@ getStdin()
 
 int
 runCommand(
-    const std::string& command,
+    std::string const& command,
     std::vector<std::string> const& args,
     boost::filesystem::path const& keyFile,
     std::optional<std::string> const& keyType,
@@ -386,7 +386,7 @@ getEnvVar(char const* name)
 
 void
 printHelp(
-    const boost::program_options::options_description& desc,
+    boost::program_options::options_description const& desc,
     boost::filesystem::path const& defaultKeyfile)
 {
     static std::string const name = "ripple-offline";

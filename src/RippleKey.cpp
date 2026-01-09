@@ -25,7 +25,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <ripple/json/to_string.h>
 #include <ripple/protocol/Sign.h>
 #include <ripple/protocol/jss.h>
+
 #include <boost/filesystem.hpp>
+
 #include <fstream>
 
 namespace offline {

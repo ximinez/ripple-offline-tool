@@ -50,7 +50,7 @@ doCreateKeyfile(
 
 int
 runCommand(
-    const std::string& command,
+    std::string const& command,
     std::vector<std::string> const& args,
     boost::filesystem::path const& keyFile,
     std::optional<std::string> const& keyType,

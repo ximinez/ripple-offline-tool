@@ -76,7 +76,7 @@ private:
         {
             // Need a variable here instead of a literal to make
             // some compilers happy
-            const std::uint64_t mantissa = 5678900000000000LLU;
+            std::uint64_t const mantissa = 5678900000000000LLU;
             BEAST_EXPECT(
                 obj[sfSendMax] ==
                 STAmount(

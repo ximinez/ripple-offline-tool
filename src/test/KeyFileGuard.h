@@ -19,7 +19,9 @@
 //==============================================================================
 
 #include <ripple/beast/unit_test.h>
+
 #include <boost/filesystem.hpp>
+
 #include <fstream>
 
 namespace offline {
