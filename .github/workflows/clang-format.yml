@@ -4,15 +4,17 @@ on: [push, pull_request]
 
 jobs:
   check:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
-      CLANG_VERSION: 10
+      CLANG_VERSION: 21
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6.0.1
     - name: Install clang-format
       run: |
         codename=$( lsb_release --codename --short )
         sudo tee /etc/apt/sources.list.d/llvm.list >/dev/null <<EOF
+        deb http://apt.llvm.org/${codename}/ llvm-toolchain-${codename} main
+        deb-src http://apt.llvm.org/${codename}/ llvm-toolchain-${codename} main
         deb http://apt.llvm.org/${codename}/ llvm-toolchain-${codename}-${CLANG_VERSION} main
         deb-src http://apt.llvm.org/${codename}/ llvm-toolchain-${codename}-${CLANG_VERSION} main
         EOF
@@ -28,7 +30,7 @@ jobs:
         git diff --exit-code | tee "clang-format.patch"
     - name: Upload patch
       if: failure() && steps.assert.outcome == 'failure'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v6.0.0
       continue-on-error: true
       with:
         name: clang-format.patch
