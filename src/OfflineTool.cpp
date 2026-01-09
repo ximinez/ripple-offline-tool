@@ -24,6 +24,7 @@
 
 #include <ripple/beast/core/SemanticVersion.h>
 #include <ripple/beast/unit_test.h>
+#include <ripple/protocol/BuildInfo.h>
 #include <ripple/protocol/HashPrefix.h>
 
 #include <boost/algorithm/string/trim.hpp>
@@ -532,6 +533,14 @@ main(int argc, char** argv)
     {
         std::cout << "ripple-offline version " << getVersionString()
                   << std::endl;
+        std::cout << "libxrpl version: "
+                  << ripple::BuildInfo::getVersionString() << std::endl;
+#ifdef GIT_COMMIT_HASH
+        std::cout << "Git commit hash: " << GIT_COMMIT_HASH << std::endl;
+#endif
+#ifdef GIT_BRANCH
+        std::cout << "Git build branch: " << GIT_BRANCH << std::endl;
+#endif
         return EXIT_SUCCESS;
     }
 
